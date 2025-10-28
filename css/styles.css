@@ -4,9 +4,19 @@
   box-sizing: border-box;
 }
 
+html {
+  font-family: "EB Garamond", serif;
+  font-display: swap;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
   display: flex;
   min-height: 100vh;
   overflow: hidden;
@@ -111,8 +121,8 @@ body {
 }
 
 .project-content {
-  max-width: 50rem;
   width: 100%;
+  max-width: none;
 }
 
 .project-info {
@@ -171,16 +181,36 @@ body {
     width: 100%;
   }
 
+  .projects-wrapper {
+  gap: 5rem;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+
   .project-section {
     min-height: auto;
   }
 
-  .sidebar-bottom {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 1rem;
+  
 
+  .sidebar-bottom {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;           /* no line breaks */
+    gap: 1rem;
+    overflow-x: auto;            /* horizontal scroll */
+    overflow-y: hidden;
+    white-space: nowrap;         /* keep button labels on one line */
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity; /* nicer scroll on mobile */
+    padding-bottom: 0.25rem;     /* space for scrollbar if it appears */
     margin-top: 2rem;
+  }
+
+  .sidebar-bottom .project-link {
+    flex: 0 0 auto;              /* don't shrink; keep intrinsic width */
+    white-space: nowrap;         /* avoid wrapping inside buttons */
+    scroll-snap-align: start;
   }
 }
 
