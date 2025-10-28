@@ -195,3 +195,46 @@ body {
 .project-section.hidden {
   display: none;
 }
+
+/* === Project gallery === */
+.project-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 5rem; /* separación entre imágenes de la galería */
+  width: 100%;
+}
+
+.gallery-image {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* Opción A: tamaños semánticos */
+.img-sm {
+  max-width: 420px;
+  align-self: center;
+}
+.img-md {
+  max-width: 680px;
+  align-self: center;
+}
+.img-lg {
+  max-width: 960px;
+  align-self: center;
+}
+.img-full {
+  max-width: 100%;
+  align-self: stretch;
+}
+
+/* En móviles, las imágenes ocupan el ancho disponible */
+@media (max-width: 599px) {
+  .img-sm,
+  .img-md,
+  .img-lg,
+  .img-full {
+    max-width: 100%;
+  }
+}
