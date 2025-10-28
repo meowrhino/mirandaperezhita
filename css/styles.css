@@ -115,13 +115,6 @@ body {
   width: 100%;
 }
 
-.project-image {
-  width: 100%;
-  height: auto;
-  margin-bottom: 2rem;
-  object-fit: contain;
-}
-
 .project-info {
   display: flex;
   flex-direction: column;
@@ -196,7 +189,7 @@ body {
   display: none;
 }
 
-/* === Generic media group === */
+/* === Media system (shared hero + gallery) === */
 .media-group,
 .project-gallery {
   /* alias para compatibilidad */

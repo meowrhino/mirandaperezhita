@@ -54,6 +54,38 @@ async function loadProjects(visibleProjects) {
   await Promise.all(promises);
 }
 
+// Utilidad: crea un contenedor "hueco" (media-frame) con una imagen centrada y escalada 1–100
+function makeMediaFrame(src, altText, scalePercent = 100) {
+  const frame = document.createElement('div');
+  frame.className = 'media-frame';
+
+  const img = document.createElement('img');
+  img.className = 'media-image';
+  img.src = src;
+  img.alt = altText || '';
+  img.loading = 'lazy';
+  img.onerror = () => {
+    img.src = '/images/reference/pasted_file_KN2lG4_MacBookAir-1.png';
+  };
+
+  // Normalizar y aplicar escala (1–100)
+  let s = parseInt(scalePercent, 10);
+  if (isNaN(s)) s = 100; // por defecto 100
+  s = Math.max(1, Math.min(100, s));
+  img.style.setProperty('--scale', (s / 100).toString());
+
+  // Al cargar, fijar variables del hueco desde el tamaño natural
+  img.addEventListener('load', () => {
+    const w = img.naturalWidth || 1;
+    const h = img.naturalHeight || 1;
+    frame.style.setProperty('--natural-w', w + 'px');
+    frame.style.setProperty('--ratio', `${w} / ${h}`);
+  });
+
+  frame.appendChild(img);
+  return frame;
+}
+
 // Actualizar color de fondo del sidebar
 function updateSidebarColor() {
   const color = homeData.home_colors[activeLanguage];
@@ -116,34 +148,13 @@ function renderProjects() {
     content.className = "project-content";
 
     // Imagen principal (usa el mismo sistema genérico que la galería)
-    const hero = document.createElement('div');
-    hero.className = 'media-frame hero';
-
-    const img = document.createElement('img');
-    img.className = 'media-image';
-    img.src = projectData.primera_imatge.src;
-    img.alt = projectData.titol[activeLanguage];
-    img.loading = 'lazy';
-    img.onerror = () => {
-      img.src = '/images/reference/pasted_file_KN2lG4_MacBookAir-1.png';
-    };
-
-    // Escala 1–100 desde primera_imatge.size (default 100)
-    let heroScale = parseInt(projectData.primera_imatge && projectData.primera_imatge.size, 10);
-    if (isNaN(heroScale)) heroScale = 100;
-    heroScale = Math.max(1, Math.min(100, heroScale));
-    img.style.setProperty('--scale', (heroScale / 100).toString());
-
-    // Al cargar, fijar hueco según tamaño natural
-    img.addEventListener('load', () => {
-      const w = img.naturalWidth || 1;
-      const h = img.naturalHeight || 1;
-      hero.style.setProperty('--natural-w', w + 'px');
-      hero.style.setProperty('--ratio', `${w} / ${h}`);
-    });
-
-    hero.appendChild(img);
-
+    const heroScale = projectData.primera_imatge?.size ?? 100;
+    const hero = makeMediaFrame(
+      projectData.primera_imatge.src,
+      projectData.titol[activeLanguage],
+      heroScale
+    );
+    hero.classList.add('hero');
     content.appendChild(hero);
 
     // Información del proyecto
@@ -193,38 +204,11 @@ function renderProjects() {
 
     images.forEach((imgMeta) => {
       if (!imgMeta || !imgMeta.src) return;
-
-      // Contenedor basado en el tamaño original de la imagen
-      const item = document.createElement('div');
-      item.className = 'media-frame';
-
-      // Escala numérica 1–100 (default 100)
-      let scaleNum = parseInt(imgMeta.size, 10);
-      if (isNaN(scaleNum)) scaleNum = 100;
-      scaleNum = Math.max(1, Math.min(100, scaleNum));
-
-      const gimg = document.createElement('img');
-      gimg.className = 'media-image';
-      gimg.src = imgMeta.src;
-      gimg.alt = projectData.titol[activeLanguage] || '';
-      gimg.loading = 'lazy';
-      gimg.onerror = () => {
-        gimg.src = '/images/reference/pasted_file_KN2lG4_MacBookAir-1.png';
-      };
-
-      // Al cargar, fijamos el tamaño del contenedor según naturalWidth/Height
-      gimg.addEventListener('load', () => {
-        const w = gimg.naturalWidth || 1;
-        const h = gimg.naturalHeight || 1;
-        // Variables CSS para que el contenedor use el tamaño original como preferido
-        item.style.setProperty('--natural-w', w + 'px');
-        item.style.setProperty('--ratio', `${w} / ${h}`);
-      });
-
-      // Pasar escala (1–100) a CSS como 0–1
-      gimg.style.setProperty('--scale', (scaleNum / 100).toString());
-
-      item.appendChild(gimg);
+      const item = makeMediaFrame(
+        imgMeta.src,
+        projectData.titol[activeLanguage] || '',
+        imgMeta.size
+      );
       gallery.appendChild(item);
     });
 
@@ -319,12 +303,14 @@ function updateProjectsContent() {
     if (lloc) lloc.textContent = projectData.lloc[activeLanguage];
     if (text) text.textContent = projectData.text[activeLanguage];
     if (img) {
+      // alt + escala
       img.alt = projectData.titol[activeLanguage];
-      let heroScale = parseInt(projectData.primera_imatge && projectData.primera_imatge.size, 10);
+      let heroScale = parseInt(projectData.primera_imatge?.size, 10);
       if (isNaN(heroScale)) heroScale = 100;
       heroScale = Math.max(1, Math.min(100, heroScale));
       img.style.setProperty('--scale', (heroScale / 100).toString());
 
+      // asegurar variables del contenedor si no están
       const hero = section.querySelector('.media-frame.hero');
       if (hero && !hero.style.getPropertyValue('--ratio')) {
         const setVars = () => {
