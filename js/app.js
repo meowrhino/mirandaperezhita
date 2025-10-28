@@ -15,7 +15,7 @@ const authorButtons = document.querySelectorAll(".author-btn");
 async function init() {
   try {
     // Cargar home.json
-    const homeResponse = await fetch("/data/home.json");
+    const homeResponse = await fetch("data/home.json");
     homeData = await homeResponse.json();
 
     // Actualizar color de fondo del sidebar
@@ -46,7 +46,7 @@ function getVisibleProjectsFromHome() {
 // Cargar todos los proyectos
 async function loadProjects(visibleProjects) {
   const promises = visibleProjects.map(async (project) => {
-    const response = await fetch(`/data/${project.slug}.json`);
+    const response = await fetch(`data/${project.slug}.json`);
     const data = await response.json();
     projectsData[project.slug] = data;
   });
@@ -65,7 +65,7 @@ function makeMediaFrame(src, altText, scalePercent = 100) {
   img.alt = altText || '';
   img.loading = 'lazy';
   img.onerror = () => {
-    img.src = '/images/reference/pasted_file_KN2lG4_MacBookAir-1.png';
+    img.src = 'images/reference/pasted_file_KN2lG4_MacBookAir-1.png';
   };
 
   // Normalizar y aplicar escala (1–100)
