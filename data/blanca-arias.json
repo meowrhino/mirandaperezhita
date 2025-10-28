@@ -3,7 +3,7 @@
     "folder": "blanca-arias",
     "primera_imatge": {
         "src": "images/blancaArias/1.jpg",
-        "size": "large"
+        "size": "100"
     },
     "titol": {
         "cat": "Blanca Arias",
@@ -28,15 +28,15 @@
     "imatges": [
         {
             "src": "images/blancaArias/2.jpg",
-            "size": "large"
+            "size": "100"
         },
         {
             "src": "images/blancaArias/3.jpg",
-            "size": "large"
+            "size": "100"
         },
         {
             "src": "images/blancaArias/4.jpg",
-            "size": "large"
+            "size": "100"
         }
     ]
 }
