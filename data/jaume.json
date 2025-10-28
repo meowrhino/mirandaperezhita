@@ -1,0 +1,32 @@
+{
+    "slug": "jaume",
+    "folder": "jaume",
+
+    "primera_imatge": {
+        "src": "/images/reference/pasted_file_DM3KlS_iPhoneSE-1.png",
+        "size": "large"
+    },
+
+    "titol": {
+        "cat": "Jaume",
+        "es": "Jaume",
+        "link": ""
+    },
+    "client": {
+        "cat": "Client Exemple",
+        "es": "Cliente Ejemplo",
+        "link": ""
+    },
+    "lloc": {
+        "cat": "Barcelona",
+        "es": "Barcelona",
+        "link": ""
+    },
+    "data": "2024",
+    "text": {
+        "cat": "Projecte de disseny gràfic per a l'exposició Jaume.",
+        "es": "Proyecto de diseño gráfico para la exposición Jaume."
+    },
+
+    "imatges": []
+}

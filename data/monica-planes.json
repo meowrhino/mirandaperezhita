@@ -1,0 +1,32 @@
+{
+    "slug": "monica-planes",
+    "folder": "monica-planes",
+
+    "primera_imatge": {
+        "src": "/images/reference/pasted_file_KN2lG4_MacBookAir-1.png",
+        "size": "large"
+    },
+
+    "titol": {
+        "cat": "Monica Planes",
+        "es": "Monica Planes",
+        "link": ""
+    },
+    "client": {
+        "cat": "Client Exemple",
+        "es": "Cliente Ejemplo",
+        "link": ""
+    },
+    "lloc": {
+        "cat": "Barcelona",
+        "es": "Barcelona",
+        "link": ""
+    },
+    "data": "2024",
+    "text": {
+        "cat": "Projecte de disseny per a Monica Planes.",
+        "es": "Proyecto de diseño para Monica Planes."
+    },
+
+    "imatges": []
+}

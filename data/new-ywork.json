@@ -1,0 +1,32 @@
+{
+    "slug": "new-ywork",
+    "folder": "new-ywork",
+
+    "primera_imatge": {
+        "src": "/images/reference/pasted_file_KN2lG4_MacBookAir-1.png",
+        "size": "large"
+    },
+
+    "titol": {
+        "cat": "New Ywork",
+        "es": "New Ywork",
+        "link": ""
+    },
+    "client": {
+        "cat": "Jaume Cloret",
+        "es": "Jaume Cloret",
+        "link": ""
+    },
+    "lloc": {
+        "cat": "Centre d'Art La Capella",
+        "es": "Centro de Arte La Capella",
+        "link": ""
+    },
+    "data": "2024",
+    "text": {
+        "cat": "Disseny del catàleg / Exposició / càrrega de \"New Ywork\", exposició de Beatrice Jacome Clotet a La Capella.",
+        "es": "Diseño del catálogo / Exposición / carga de \"New Ywork\", exposición de Beatrice Jacome Clotet en La Capella."
+    },
+
+    "imatges": []
+}

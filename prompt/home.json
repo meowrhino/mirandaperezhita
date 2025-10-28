@@ -1,0 +1,32 @@
+{
+    "home_colors": {
+        "cat": "",
+        "es": ""
+    },
+    "projectes_visibles": [
+        {
+            "slug": "",
+            "color": "",
+            "visible": "", 
+            "autor": ""
+        },
+        {
+            "slug": "",
+            "color": "",
+            "visible": "", 
+            "autor": ""
+        },
+        {
+            "slug": "",
+            "color": "",
+            "visible": "", 
+            "autor": ""
+        },
+        {
+            "slug": "",
+            "color": "",
+            "visible": "", 
+            "autor": ""
+        }
+    ]
+}

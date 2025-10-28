@@ -1,0 +1,32 @@
+{
+    "slug": "blanca-arias",
+    "folder": "blanca-arias",
+
+    "primera_imatge": {
+        "src": "/images/reference/pasted_file_DM3KlS_iPhoneSE-1.png",
+        "size": "large"
+    },
+
+    "titol": {
+        "cat": "Blanca Arias",
+        "es": "Blanca Arias",
+        "link": ""
+    },
+    "client": {
+        "cat": "Client Exemple",
+        "es": "Cliente Ejemplo",
+        "link": ""
+    },
+    "lloc": {
+        "cat": "Barcelona",
+        "es": "Barcelona",
+        "link": ""
+    },
+    "data": "2024",
+    "text": {
+        "cat": "Projecte de disseny per a Blanca Arias.",
+        "es": "Proyecto de diseño para Blanca Arias."
+    },
+
+    "imatges": []
+}
