@@ -115,14 +115,36 @@ function renderProjects() {
     const content = document.createElement("div");
     content.className = "project-content";
 
-    // Imagen principal
-    const img = document.createElement("img");
-    img.className = "project-image";
+    // Imagen principal (usa el mismo sistema genérico que la galería)
+    const hero = document.createElement('div');
+    hero.className = 'media-frame hero';
+
+    const img = document.createElement('img');
+    img.className = 'media-image';
     img.src = projectData.primera_imatge.src;
     img.alt = projectData.titol[activeLanguage];
+    img.loading = 'lazy';
     img.onerror = () => {
-      img.src = "/images/reference/pasted_file_KN2lG4_MacBookAir-1.png";
+      img.src = '/images/reference/pasted_file_KN2lG4_MacBookAir-1.png';
     };
+
+    // Escala 1–100 desde primera_imatge.size (default 100)
+    let heroScale = parseInt(projectData.primera_imatge && projectData.primera_imatge.size, 10);
+    if (isNaN(heroScale)) heroScale = 100;
+    heroScale = Math.max(1, Math.min(100, heroScale));
+    img.style.setProperty('--scale', (heroScale / 100).toString());
+
+    // Al cargar, fijar hueco según tamaño natural
+    img.addEventListener('load', () => {
+      const w = img.naturalWidth || 1;
+      const h = img.naturalHeight || 1;
+      hero.style.setProperty('--natural-w', w + 'px');
+      hero.style.setProperty('--ratio', `${w} / ${h}`);
+    });
+
+    hero.appendChild(img);
+
+    content.appendChild(hero);
 
     // Información del proyecto
     const info = document.createElement("div");
@@ -159,12 +181,11 @@ function renderProjects() {
     info.appendChild(details);
     info.appendChild(text);
 
-    content.appendChild(img);
     content.appendChild(info);
 
     // Galería de imágenes (después de la info)
-    const gallery = document.createElement("div");
-    gallery.className = "project-gallery";
+    const gallery = document.createElement('div');
+    gallery.className = 'media-group';
 
     const images = Array.isArray(projectData.imatges)
       ? projectData.imatges
@@ -175,7 +196,7 @@ function renderProjects() {
 
       // Contenedor basado en el tamaño original de la imagen
       const item = document.createElement('div');
-      item.className = 'gallery-item';
+      item.className = 'media-frame';
 
       // Escala numérica 1–100 (default 100)
       let scaleNum = parseInt(imgMeta.size, 10);
@@ -183,7 +204,7 @@ function renderProjects() {
       scaleNum = Math.max(1, Math.min(100, scaleNum));
 
       const gimg = document.createElement('img');
-      gimg.className = 'gallery-image';
+      gimg.className = 'media-image';
       gimg.src = imgMeta.src;
       gimg.alt = projectData.titol[activeLanguage] || '';
       gimg.loading = 'lazy';
@@ -292,16 +313,32 @@ function updateProjectsContent() {
     const client = section.querySelectorAll(".project-detail")[0];
     const lloc = section.querySelectorAll(".project-detail")[1];
     const text = section.querySelector(".project-text");
-    const img = section.querySelector(".project-image");
-
+    const img = section.querySelector('.media-frame.hero .media-image');
     if (title) title.textContent = projectData.titol[activeLanguage];
     if (client) client.textContent = projectData.client[activeLanguage];
     if (lloc) lloc.textContent = projectData.lloc[activeLanguage];
     if (text) text.textContent = projectData.text[activeLanguage];
-    if (img) img.alt = projectData.titol[activeLanguage];
+    if (img) {
+      img.alt = projectData.titol[activeLanguage];
+      let heroScale = parseInt(projectData.primera_imatge && projectData.primera_imatge.size, 10);
+      if (isNaN(heroScale)) heroScale = 100;
+      heroScale = Math.max(1, Math.min(100, heroScale));
+      img.style.setProperty('--scale', (heroScale / 100).toString());
+
+      const hero = section.querySelector('.media-frame.hero');
+      if (hero && !hero.style.getPropertyValue('--ratio')) {
+        const setVars = () => {
+          const w = img.naturalWidth || 1;
+          const h = img.naturalHeight || 1;
+          hero.style.setProperty('--natural-w', w + 'px');
+          hero.style.setProperty('--ratio', `${w} / ${h}`);
+        };
+        if (img.complete) setVars(); else img.addEventListener('load', setVars, { once: true });
+      }
+    }
 
     // Actualizar alts de la galería
-    const gallery = section.querySelector(".project-gallery");
+    const gallery = section.querySelector('.media-group');
     if (gallery) {
       gallery.querySelectorAll("img").forEach((gimg) => {
         gimg.alt = projectData.titol[activeLanguage] || "";

@@ -196,25 +196,27 @@ body {
   display: none;
 }
 
-/* === Project gallery === */
+/* === Generic media group === */
+.media-group,
 .project-gallery {
+  /* alias para compatibilidad */
   display: flex;
   flex-direction: column;
-  gap: 5rem; /* separación entre imágenes de la galería */
+  gap: 5rem;
   width: 100%;
 }
 
 /* Contenedor por imagen basado en tamaño original */
-.gallery-item {
+.media-frame {
   position: relative;
   display: block;
   width: min(100%, var(--natural-w, 100%));
   aspect-ratio: var(--ratio, 1 / 1);
-  margin-inline: auto; /* centrar el hueco si es más estrecho que el contenedor */
+  margin-inline: auto;
 }
 
 /* Imagen centrada y escalada dentro del hueco */
-.gallery-item > .gallery-image {
+.media-frame > .media-image {
   position: absolute;
   inset: 0;
   margin: auto;
@@ -226,35 +228,13 @@ body {
   display: block;
 }
 
-/* En móviles, el hueco usa el ancho completo */
 @media (max-width: 599px) {
-  .gallery-item { width: 100%; }
-}
-
-/* Opción A: tamaños semánticos */
-.img-sm {
-  max-width: 420px;
-  align-self: center;
-}
-.img-md {
-  max-width: 680px;
-  align-self: center;
-}
-.img-lg {
-  max-width: 960px;
-  align-self: center;
-}
-.img-full {
-  max-width: 100%;
-  align-self: stretch;
-}
-
-/* En móviles, las imágenes ocupan el ancho disponible */
-@media (max-width: 599px) {
-  .img-sm,
-  .img-md,
-  .img-lg,
-  .img-full {
-    max-width: 100%;
+  .media-frame {
+    width: 100%;
   }
+}
+
+/* Espaciado de la imagen principal (antes lo daba .project-image) */
+.media-frame.hero {
+  margin-bottom: 2rem;
 }
