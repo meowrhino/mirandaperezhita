@@ -1,12 +1,10 @@
 {
     "slug": "blanca-arias",
     "folder": "blanca-arias",
-
     "primera_imatge": {
-        "src": "/images/reference/pasted_file_DM3KlS_iPhoneSE-1.png",
+        "src": "images/blancaArias/1.jpg",
         "size": "large"
     },
-
     "titol": {
         "cat": "Blanca Arias",
         "es": "Blanca Arias",
@@ -27,6 +25,18 @@
         "cat": "Projecte de disseny per a Blanca Arias.",
         "es": "Proyecto de diseño para Blanca Arias."
     },
-
-    "imatges": []
+    "imatges": [
+        {
+            "src": "images/blancaArias/2.jpg",
+            "size": "large"
+        },
+        {
+            "src": "images/blancaArias/3.jpg",
+            "size": "large"
+        },
+        {
+            "src": "images/blancaArias/4.jpg",
+            "size": "large"
+        }
+    ]
 }

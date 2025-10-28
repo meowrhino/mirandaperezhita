@@ -58,7 +58,7 @@ async function loadProjects(visibleProjects) {
 // Actualizar color de fondo del sidebar
 function updateSidebarColor() {
     const color = homeData.home_colors[activeLanguage];
-    sidebar.style.backgroundColor = color;
+    document.body.style.backgroundColor = color;
 }
 
 // Renderizar menú de navegación

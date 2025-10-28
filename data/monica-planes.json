@@ -1,12 +1,10 @@
 {
     "slug": "monica-planes",
     "folder": "monica-planes",
-
     "primera_imatge": {
-        "src": "/images/reference/pasted_file_KN2lG4_MacBookAir-1.png",
+        "src": "/images/monicaPlanes/1.jpeg",
         "size": "large"
     },
-
     "titol": {
         "cat": "Monica Planes",
         "es": "Monica Planes",
@@ -27,6 +25,26 @@
         "cat": "Projecte de disseny per a Monica Planes.",
         "es": "Proyecto de diseño para Monica Planes."
     },
-
-    "imatges": []
+    "imatges": [
+        {
+            "src": "/images/monicaPlanes/2.jpeg",
+            "size": "large"
+        },
+        {
+            "src": "/images/monicaPlanes/3.jpeg",
+            "size": "large"
+        },
+        {
+            "src": "/images/monicaPlanes/4.jpeg",
+            "size": "large"
+        },
+        {
+            "src": "/images/monicaPlanes/5.jpeg",
+            "size": "large"
+        },
+        {
+            "src": "/images/monicaPlanes/6.jpeg",
+            "size": "large"
+        }
+    ]
 }
