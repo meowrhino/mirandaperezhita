@@ -1,8 +1,8 @@
 {
     "slug": "new-ywork",
-    "folder": "new-ywork",
+
     "primera_imatge": {
-        "src": "/images/NY/1.jpg",
+        "src": "images/NY/1.jpg",
         "size": "100"
     },
     "titol": {
@@ -27,11 +27,11 @@
     },
     "imatges": [
         {
-            "src": "/images/NY/2.jpg",
+            "src": "images/NY/2.jpg",
             "size": "50"
         },
         {
-            "src": "/images/NY/3.jpg",
+            "src": "images/NY/3.jpg",
             "size": "70"
         }
     ]

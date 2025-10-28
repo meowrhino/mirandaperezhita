@@ -1,8 +1,8 @@
 {
     "slug": "monica-planes",
-    "folder": "monica-planes",
+    
     "primera_imatge": {
-        "src": "/images/monicaPlanes/1.jpeg",
+        "src": "images/monicaPlanes/1.jpeg",
         "size": "100"
     },
     "titol": {
@@ -27,23 +27,23 @@
     },
     "imatges": [
         {
-            "src": "/images/monicaPlanes/2.jpeg",
+            "src": "images/monicaPlanes/2.jpeg",
             "size": "100"
         },
         {
-            "src": "/images/monicaPlanes/3.jpeg",
+            "src": "images/monicaPlanes/3.jpeg",
             "size": "100"
         },
         {
-            "src": "/images/monicaPlanes/4.jpeg",
+            "src": "images/monicaPlanes/4.jpeg",
             "size": "100"
         },
         {
-            "src": "/images/monicaPlanes/5.jpeg",
+            "src": "images/monicaPlanes/5.jpeg",
             "size": "100"
         },
         {
-            "src": "/images/monicaPlanes/6.jpeg",
+            "src": "images/monicaPlanes/6.jpeg",
             "size": "100"
         }
     ]
