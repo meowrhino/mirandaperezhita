@@ -169,35 +169,42 @@ function renderProjects() {
     const images = Array.isArray(projectData.imatges)
       ? projectData.imatges
       : [];
+
     images.forEach((imgMeta) => {
       if (!imgMeta || !imgMeta.src) return;
-      const gimg = document.createElement("img");
-      gimg.className = "gallery-image";
-      // Opción A: tamaños semánticos sm | md | lg | full (con fallback)
-      const size = (imgMeta.size || "").toLowerCase();
-      if (
-        ["sm", "md", "lg", "full", "small", "medium", "large"].includes(size)
-      ) {
-        // normalizar alias
-        const norm =
-          size === "small"
-            ? "sm"
-            : size === "medium"
-            ? "md"
-            : size === "large"
-            ? "lg"
-            : size;
-        gimg.classList.add(`img-${norm}`);
-      } else {
-        gimg.classList.add("img-md");
-      }
+
+      // Contenedor basado en el tamaño original de la imagen
+      const item = document.createElement('div');
+      item.className = 'gallery-item';
+
+      // Escala numérica 1–100 (default 100)
+      let scaleNum = parseInt(imgMeta.size, 10);
+      if (isNaN(scaleNum)) scaleNum = 100;
+      scaleNum = Math.max(1, Math.min(100, scaleNum));
+
+      const gimg = document.createElement('img');
+      gimg.className = 'gallery-image';
       gimg.src = imgMeta.src;
-      gimg.alt = projectData.titol[activeLanguage] || "";
-      gimg.loading = "lazy";
+      gimg.alt = projectData.titol[activeLanguage] || '';
+      gimg.loading = 'lazy';
       gimg.onerror = () => {
-        gimg.src = "/images/reference/pasted_file_KN2lG4_MacBookAir-1.png";
+        gimg.src = '/images/reference/pasted_file_KN2lG4_MacBookAir-1.png';
       };
-      gallery.appendChild(gimg);
+
+      // Al cargar, fijamos el tamaño del contenedor según naturalWidth/Height
+      gimg.addEventListener('load', () => {
+        const w = gimg.naturalWidth || 1;
+        const h = gimg.naturalHeight || 1;
+        // Variables CSS para que el contenedor use el tamaño original como preferido
+        item.style.setProperty('--natural-w', w + 'px');
+        item.style.setProperty('--ratio', `${w} / ${h}`);
+      });
+
+      // Pasar escala (1–100) a CSS como 0–1
+      gimg.style.setProperty('--scale', (scaleNum / 100).toString());
+
+      item.appendChild(gimg);
+      gallery.appendChild(item);
     });
 
     content.appendChild(gallery);

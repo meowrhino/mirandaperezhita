@@ -3,7 +3,7 @@
     "folder": "new-ywork",
     "primera_imatge": {
         "src": "/images/NY/1.jpg",
-        "size": "100"
+        "size": "50"
     },
     "titol": {
         "cat": "New Ywork",
@@ -28,7 +28,7 @@
     "imatges": [
         {
             "src": "/images/NY/2.jpg",
-            "size": "100"
+            "size": "50"
         },
         {
             "src": "/images/NY/3.jpg",
