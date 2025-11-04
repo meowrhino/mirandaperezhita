@@ -144,6 +144,7 @@ function makeMediaFrame(src, altText, scalePercent = 100) {
 function updateSidebarColor() {
   const color = homeData.home_colors[activeLanguage];
   document.body.style.backgroundColor = color;
+  if (sidebar) sidebar.style.backgroundColor = color; // sincroniza el fondo del sidebar en móvil y desktop
 }
 
 // Renderizar menú de navegación

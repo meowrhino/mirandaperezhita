@@ -175,21 +175,27 @@ body {
 /* Mobile: <600px */
 @media (max-width: 599px) {
   body {
+    display: flex;
     flex-direction: column;
-    overflow: auto; /* allow page scroll on mobile */
+    min-height: 100dvh;
+    overflow: auto; /* document scroll */
   }
 
   #sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
     width: 100%;
     min-height: auto;
     padding: 1.5rem;
+    overflow: visible; /* avoid nested vertical scroll */
   }
 
   #projects-container {
     width: 100%;
-    height: auto;      /* override desktop 100vh */
-    min-height: 0;     /* ensure it can shrink */
-    overflow: visible; /* let the whole page scroll */
+    height: auto;      /* remove fixed viewport height */
+    min-height: 0;
+    overflow: visible; /* let the page (document) scroll */
   }
 
   .projects-wrapper {
