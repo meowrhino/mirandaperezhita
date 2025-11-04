@@ -70,6 +70,11 @@ async function init() {
       setupProjectObserver();
     });
 
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleLayoutChange);
+      window.visualViewport.addEventListener('scroll', handleLayoutChange);
+    }
+
     // Configurar event listeners
     setupEventListeners();
   } catch (error) {
@@ -97,7 +102,7 @@ function renderAbout() {
   wrap.className = 'about-content';
 
   const h2 = document.createElement('h2');
-  h2.textContent = 'About';
+  h2.textContent = 'miranda perez hita';
   wrap.appendChild(h2);
 
   const textos = Array.isArray(aboutData?.texto) ? aboutData.texto : [];
@@ -301,6 +306,7 @@ function makeMediaFrame(src, altText, scalePercent = 100) {
 function updateSidebarColor() {
   const colors = homeData?.home_colors || {};
   const color = colors[activeLanguage] ?? colors.cat ?? '#ffffff';
+  document.documentElement.style.setProperty('--home-bg-color', color);
   document.body.style.backgroundColor = color;
   if (sidebar) sidebar.style.backgroundColor = color; // sincroniza el fondo del sidebar en móvil y desktop
 }
