@@ -14,6 +14,20 @@ const authorButtons = document.querySelectorAll('.author-btn[data-author]');
 const aboutToggle = document.getElementById("about-toggle");
 const aboutPanel = document.getElementById("about-panel");
 
+function updateStickyOffset() {
+  if (!sidebar) return;
+  const h = sidebar.offsetHeight || 0;
+  document.documentElement.style.setProperty('--sidebar-h', h + 'px');
+}
+
+function debounce(fn, delay = 150) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), delay);
+  };
+}
+
 // Inicializar la aplicación
 async function init() {
   try {
@@ -34,6 +48,10 @@ async function init() {
     // Renderizar interfaz
     renderProjectMenu();
     renderProjects();
+
+    updateStickyOffset();
+    window.addEventListener('resize', debounce(updateStickyOffset, 150));
+    window.addEventListener('load', updateStickyOffset);
 
     // Configurar event listeners
     setupEventListeners();
@@ -309,6 +327,7 @@ function setupEventListeners() {
       updateSidebarColor();
       renderProjectMenu();
       updateProjectsContent();
+      updateStickyOffset();
     });
   });
 
@@ -331,6 +350,7 @@ function setupEventListeners() {
       // Actualizar vista
       renderProjectMenu();
       updateProjectsVisibility();
+      updateStickyOffset();
     });
   });
 

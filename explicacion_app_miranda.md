@@ -149,4 +149,44 @@ Medidas recomendadas:
 - **app.js:** quitar toda la lógica de autores y añadir `toggleAbout()`.  
 - **styles.css:** añadir bloque `.about-panel` con slide-in desde derecha (desktop) y desde abajo (móvil), y reforzar `z-index` del sidebar.
 
-Si quieres, puedo aplicar estos cambios directamente a tus archivos.
+
+---
+
+## 13) To‑do / pendientes de revisión
+
+### A. Limpieza y mantenimiento CSS
+- [ ] Eliminar bloque mínimo duplicado de `.about-panel` y conservar la versión avanzada.
+- [ ] Mover `font-display` dentro de `@font-face` o eliminarlo del bloque `html`.
+- [ ] Añadir estilos `:focus-visible` para accesibilidad.
+- [ ] Asegurar fondo heredado en `#sidebar` móvil.
+- [ ] Aumentar `z-index` de `.about-panel` por encima del sidebar.
+- [ ] Respetar `prefers-reduced-motion` (quitar transiciones largas y smooth scroll).
+- [ ] Revisar colores de fondo y legibilidad en todos los modos.
+
+### B. Mejoras en `app.js`
+- [ ] Añadir `aria-controls`, `aria-expanded` y `aria-hidden` al panel About.
+- [ ] Bloquear scroll del body cuando el About esté abierto.
+- [ ] Permitir cierre del About con tecla `Esc`.
+- [ ] Incluir fallback de color seguro en `updateSidebarColor()`.
+- [ ] Añadir `try/catch` a las descargas de proyectos.
+- [ ] Revisar `onerror` de imágenes (usar placeholder o ruta válida).
+- [ ] Añadir fallback de idioma con `??` al pasar textos.
+
+### C. Accesibilidad y navegación
+- [ ] Añadir `aria-current="true"` al botón del proyecto visible (usar `IntersectionObserver`).
+- [ ] Verificar orden de tabulación entre menú y proyectos.
+- [ ] Comprobar contraste de colores en textos y botones.
+
+### D. Revisión responsive y UX
+- [ ] Revisar `position` y `z-index` en móvil para evitar que el menú quede oculto.
+- [ ] Comprobar transiciones del About en móvil (slide‑up) y escritorio (slide‑in right).
+- [ ] Verificar alturas relativas (`100dvh - sidebar`) al navegar entre proyectos.
+- [ ] Confirmar que `scroll-margin-top` evita que el contenido quede detrás del sidebar.
+- [ ] Revisar visualización del foco en botones del menú lateral.
+
+### E. Próximos pasos generales
+- [ ] Eliminar definitivamente la lógica de autores.
+- [ ] Añadir placeholder para imágenes faltantes.
+- [ ] Documentar comportamiento de About y fallback de idiomas en esta guía.
+- [ ] Testear rendimiento y smoothness en móvil (scroll + transiciones).
+- [ ] Hacer revisión final de accesibilidad (WCAG básicas).
