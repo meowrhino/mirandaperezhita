@@ -5,7 +5,7 @@
 }
 
 html {
-  font-family: "EB Garamond", serif;
+  font-family: "EB Garamond", 'Times New Roman', serif;
   font-display: swap;
 }
 
@@ -134,7 +134,7 @@ body {
 
 .project-title {
   font-size: 2rem;
-  font-weight: bold;
+  /* font-weight: bold; */
   margin-bottom: 0.5rem;
 }
 

@@ -3,7 +3,7 @@
 
     "primera_imatge": {
         "src": "images/NY/1.jpg",
-        "size": "100"
+        "size": "80"
     },
     "titol": {
         "cat": "New Ywork",
@@ -28,11 +28,11 @@
     "imatges": [
         {
             "src": "images/NY/2.jpg",
-            "size": "100"
+            "size": "76"
         },
         {
             "src": "images/NY/3.jpg",
-            "size": "100"
+            "size": "94"
         }
     ]
 }

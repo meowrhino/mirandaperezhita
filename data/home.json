@@ -1,30 +1,30 @@
 {
     "home_colors": {
-        "cat": "#F5E6D3",
-        "es": "#E8D4C0"
+        "cat": "#E6D8C3",
+        "es": "#F8E3CE"
     },
     "projectes_visibles": [
         {
             "slug": "new-ywork",
-            "color": "#B8D4E8",
+            "color": "#748873",
             "visible": true,
             "autor": "miranda perez hita"
         },
         {
             "slug": "new-ywork_2",
-            "color": "#D4E8B8",
+            "color": "#98A1BC",
             "visible": true,
             "autor": "equipa grafica"
         },
         {
             "slug": "monica-planes",
-            "color": "#E8B8D4",
+            "color": "#E8988A",
             "visible": true,
             "autor": "6508"
         },
         {
             "slug": "blanca-arias",
-            "color": "#F5D4A8",
+            "color": "#7B4019",
             "visible": true,
             "autor": "miranda perez hita"
         }
