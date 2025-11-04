@@ -2,258 +2,194 @@
 <html lang="es">
 
 <head>
-    <meta charset="utf-8" />
-    <title>Formateador de sinopsis / créditos / textos</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-        :root {
-            font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        }
+  <meta charset="utf-8" />
+  <title>Formateador — textos → array por párrafo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
 
-        body {
-            margin: 24px;
-            color: #222;
-        }
+    body {
+      margin: 24px;
+      color: #222;
+    }
 
-        .wrap {
-            max-width: 900px;
-            margin: 0 auto;
-            display: grid;
-            gap: 16px;
-        }
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
 
-        textarea,
-        pre,
-        code,
-        input[type="text"] {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        }
+    textarea,
+    pre,
+    code,
+    input[type="text"] {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
 
-        textarea {
-            width: 100%;
-            min-height: 180px;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-        }
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
 
-        .radios {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
 
-        .out {
-            min-height: 140px;
-            white-space: pre;
-            background: #0f172a;
-            color: #e5e7eb;
-            padding: 12px;
-            border-radius: 10px;
-            overflow: auto;
-        }
+    button {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      background: #fff;
+    }
 
-        .row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
+    button+button {
+      margin-left: 4px;
+    }
 
-        button {
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-            cursor: pointer;
-            background: #fff;
-        }
+    .out {
+      min-height: 160px;
+      white-space: pre;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 12px;
+      border-radius: 10px;
+      overflow: auto;
+    }
 
-        /* button.primary {
-            background: #111827;
-            color: #fff;
-            border-color: #111827;
-        } */
-        button+button {
-            margin-left: 4px;
-        }
-
-        small.hint {
-            color: #666;
-        }
-    </style>
+    small.hint {
+      color: #666;
+    }
+  </style>
 </head>
 
 <body>
-    <div class="wrap">
-        <h1>Formateador de “sinopsis”, “créditos” y “textos”</h1>
+  <div class="wrap">
 
-        <label for="entrada"><strong>1) Pega aquí tu texto</strong></label>
-        <textarea id="entrada" placeholder="Pega aquí los créditos o el poema de la sinopsis…"></textarea>
+    <textarea id="entrada"
+      placeholder="Pega o escribe el texto. Un párrafo nuevo se separa con una línea en blanco (doble salto). Dentro de un párrafo, 1×\n es salto de línea visual."></textarea>
 
-        <div class="radios">
-            <strong>2) Elige salida:</strong>
-            <label><input type="radio" name="modo" value="sinopsis" checked> Sinopsis → JSON string</label>
-            <label><input type="radio" name="modo" value="creditos"> Créditos → JSON string</label>
-            <label><input type="radio" name="modo" value="textos"> Textos → array por párrafo</label>
-        </div>
-
-        <div class="row">
-            <button id="copiar">Copiar</button>
-            <button id="limpiar">Limpiar</button>
-            <button id="btnBold" title="Negrita (**)">B</button>
-            <button id="btnItalic" title="Cursiva (*)">I</button>
-            <button id="btnUnderline" title="Subrayado (__)">U</button>
-            <button id="btnLink" title="Enlace [texto](url)">Link</button>
-            <small class="hint">El resultado aparece abajo. Se actualiza automáticamente.</small>
-        </div>
-
-        <div class="out" id="salida" aria-label="Salida JSON" tabindex="0"></div>
+    <div class="row">
+      <button id="copiar">Copiar</button>
+      <button id="limpiar">Limpiar</button>
+      <button id="btnBold" title="Negrita (**)">B</button>
+      <button id="btnItalic" title="Cursiva (*)">I</button>
+      <button id="btnUnderline" title="Subrayado (__)">U</button>
+      <button id="btnLink" title="Enlace [texto](url)">Link</button>
+      <small class="hint">El resultado aparece abajo y se actualiza automáticamente.</small>
     </div>
 
-    <script>
-        const entrada = document.getElementById('entrada');
-        const salida = document.getElementById('salida');
-        const radios = document.querySelectorAll('input[name="modo"]');
-        const btnCopiar = document.getElementById('copiar');
-        const btnLimpiar = document.getElementById('limpiar');
+    <div class="out" id="salida" aria-label="Salida JSON" tabindex="0"></div>
+  </div>
 
-        function normalizarSaltos(s) {
-            // Normaliza saltos (\r\n → \n), recorta espacios antes de salto y compacta >2 saltos
-            return s.replace(/\r\n?/g, '\n')
-                .replace(/[ \t]+\n/g, '\n')
-                .replace(/\n{3,}/g, '\n\n');
-        }
+  <script>
+    const entrada = document.getElementById('entrada');
+    const salida = document.getElementById('salida');
+    const btnCopiar = document.getElementById('copiar');
+    const btnLimpiar = document.getElementById('limpiar');
 
-        function jsonString(value) {
-            // Devuelve el valor como JSON (con comillas y escapado listo)
-            return JSON.stringify(value);
-        }
+    function normalizarSaltos(s) {
+      return s.replace(/\r\n?/g, '\n')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n');
+    }
 
-        function generar() {
-            const modo = [...radios].find(r => r.checked).value;
-            let text = entrada.value || '';
-            text = normalizarSaltos(text);
+    function jsonString(v) { return JSON.stringify(v); }
 
-            if (!text.trim()) {
-                salida.textContent = '';
-                return;
-            }
+    function generar() {
+      let text = entrada.value || '';
+      text = normalizarSaltos(text);
+      if (!text.trim()) { salida.textContent = ''; return; }
 
-            if (modo === 'sinopsis') {
-                // Un solo string con \n donde haya saltos
-                const json = `"sinopsis": ${jsonString(text)}`;
-                salida.textContent = json;
-                return;
-            }
+      const parrafos = text.trim().split(/\n\s*\n+/).map(p =>
+        p.replace(/[ \t]+\n/g, '\n').replace(/\n{2,}/g, '\n').trim()
+      ).filter(Boolean);
 
-            if (modo === 'creditos') {
-                // Mantiene 1×\n como salto de línea y compacta 3+ saltos a exactamente \n\n
-                // 1) Normaliza espacios antes de saltos
-                // 2) Convierte grupos de 3 o más saltos en exactamente dos (\n\n)
-                let out = text
-                  .replace(/[ \t]+\n/g, '\n')
-                  .replace(/\n{3,}/g, '\n\n');
+      const cuerpo = parrafos.map(p => '  ' + jsonString(p)).join(',\n');
+      const json = `"textos": [\n${cuerpo}\n]`;
+      salida.textContent = json;
+    }
 
-                const json = `"creditos": ${jsonString(out)}`;
-                salida.textContent = json;
-                return;
-            }
+    btnCopiar.addEventListener('click', async () => {
+      const txt = salida.textContent;
+      if (!txt) return;
+      try {
+        await navigator.clipboard.writeText(txt);
+        btnCopiar.textContent = '¡Copiado!';
+        setTimeout(() => btnCopiar.textContent = 'Copiar', 1200);
+      } catch {
+        const range = document.createRange();
+        range.selectNodeContents(salida);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    });
 
-            if (modo === 'textos') {
-                // Divide por párrafos (líneas en blanco). Dentro de cada párrafo, CONSERVA los \n.
-                // Limpia espacios finales de línea y colapsa múltiples saltos dentro del párrafo a uno solo.
-                const parrafos = text.trim().split(/\n\s*\n+/).map(p =>
-                    p
-                      .replace(/[ \t]+\n/g, '\n')  // quita espacios al final de línea
-                      .replace(/\n{2,}/g, '\n')     // colapsa saltos múltiples dentro del párrafo
-                      .trim()
-                ).filter(Boolean);
+    btnLimpiar.addEventListener('click', () => {
+      entrada.value = '';
+      salida.textContent = '';
+      entrada.focus();
+    });
 
-                const cuerpo = parrafos.map(p => '  ' + jsonString(p)).join(',\n');
-                const json = `"textos": [\n${cuerpo}\n]`;
-                salida.textContent = json;
-                return;
-            }
-        }
+    function wrapSelection(before, after) {
+      entrada.focus();
+      const start = entrada.selectionStart;
+      const end = entrada.selectionEnd;
+      const value = entrada.value;
+      const sel = value.slice(start, end) || '';
+      const replaced = value.slice(0, start) + before + sel + after + value.slice(end);
+      entrada.value = replaced;
+      const newStart = start + before.length;
+      const newEnd = newStart + sel.length;
+      entrada.setSelectionRange(newStart, newEnd);
+      generar();
+    }
 
-        entrada.addEventListener('input', generar);
-        radios.forEach(r => r.addEventListener('change', generar));
+    function addLink() {
+      entrada.focus();
+      const start = entrada.selectionStart;
+      const end = entrada.selectionEnd;
+      let sel = entrada.value.slice(start, end).trim();
+      const text = sel || prompt('Texto del enlace:', '');
+      if (text === null) return;
+      let url = prompt('URL (https:// o mailto:):', 'https://');
+      if (url === null) return;
+      url = url.replace(/^(https?):\s*\/\//i, '$1://').trim();
+      if (!/^(https?:\/\/|mailto:)/i.test(url)) {
+        alert('La URL debe empezar por https:// o mailto:');
+        return;
+      }
+      const value = entrada.value;
+      const replaced = value.slice(0, start) + `[${text}](${url})` + value.slice(end);
+      entrada.value = replaced;
+      const pos = start + (`[${text}](${url})`).length;
+      entrada.setSelectionRange(pos, pos);
+      generar();
+    }
 
-        btnCopiar.addEventListener('click', async () => {
-            const txt = salida.textContent;
-            if (!txt) return;
-            try {
-                await navigator.clipboard.writeText(txt);
-                btnCopiar.textContent = '¡Copiado!';
-                setTimeout(() => (btnCopiar.textContent = 'Copiar'), 1200);
-            } catch {
-                // Fallback: selecciona el contenido para copiar manualmente
-                const range = document.createRange();
-                range.selectNodeContents(salida);
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
-            }
-        });
+    const btnBold = document.getElementById('btnBold');
+    const btnItalic = document.getElementById('btnItalic');
+    const btnUnderline = document.getElementById('btnUnderline');
+    const btnLinkFmt = document.getElementById('btnLink');
 
-        btnLimpiar.addEventListener('click', () => {
-            entrada.value = '';
-            salida.textContent = '';
-            entrada.focus();
-        });
+    btnBold.addEventListener('click', () => wrapSelection('**', '**'));
+    btnItalic.addEventListener('click', () => wrapSelection('*', '*'));
+    btnUnderline.addEventListener('click', () => wrapSelection('__', '__'));
+    btnLinkFmt.addEventListener('click', addLink);
 
-        function wrapSelection(before, after) {
-            entrada.focus();
-            const start = entrada.selectionStart;
-            const end = entrada.selectionEnd;
-            const value = entrada.value;
-            const sel = value.slice(start, end) || '';
-            const replaced = value.slice(0, start) + before + sel + after + value.slice(end);
-            entrada.value = replaced;
-            // recolocar selección dentro del wrap
-            const newStart = start + before.length;
-            const newEnd = newStart + sel.length;
-            entrada.setSelectionRange(newStart, newEnd);
-            generar();
-        }
-
-        function addLink() {
-            entrada.focus();
-            const start = entrada.selectionStart;
-            const end = entrada.selectionEnd;
-            let sel = entrada.value.slice(start, end).trim();
-            const text = sel || prompt('Texto del enlace:', '');
-            if (text === null) return; // cancelado
-            let url = prompt('URL (https:// o mailto:):', 'https://');
-            if (url === null) return; // cancelado
-            url = url.replace(/^(https?):\s*\/\//i, '$1://').trim();
-            if (!/^(https?:\/\/|mailto:)/i.test(url)) {
-                alert('La URL debe empezar por https:// o mailto:');
-                return;
-            }
-            const value = entrada.value;
-            const replaced = value.slice(0, start) + `[${text}](${url})` + value.slice(end);
-            entrada.value = replaced;
-            const pos = start + (`[${text}](${url})`).length;
-            entrada.setSelectionRange(pos, pos);
-            generar();
-        }
-
-        // Botones de formato
-        const btnBold = document.getElementById('btnBold');
-        const btnItalic = document.getElementById('btnItalic');
-        const btnUnderline = document.getElementById('btnUnderline');
-        const btnLinkFmt = document.getElementById('btnLink');
-
-        btnBold.addEventListener('click', () => wrapSelection('**', '**'));
-        btnItalic.addEventListener('click', () => wrapSelection('*', '*'));
-        btnUnderline.addEventListener('click', () => wrapSelection('__', '__'));
-        btnLinkFmt.addEventListener('click', addLink);
-
-        // Primera ejecución
-        generar();
-    </script>
+    entrada.addEventListener('input', generar);
+    generar();
+  </script>
 </body>
 
 </html>

@@ -229,40 +229,31 @@ function renderProjects() {
     hero.classList.add('hero');
     content.appendChild(hero);
 
-    // Información del proyecto
+    // Información del proyecto (mínima): todo en mismos estilos
     const info = document.createElement("div");
     info.className = "project-info";
 
-    const title = document.createElement("h2");
-    title.className = "project-title";
-    title.textContent = projectData.titol[activeLanguage];
+    // Primera línea: [título], [artista], [año] (sin clase especial)
+    const firstP = document.createElement("p");
+    firstP.className = "project-text"; // usamos el mismo estilo que el resto
+    const artist = project.autor || (projectData.client?.[activeLanguage] || "");
+    const year = (projectData.data || "").toString();
+    firstP.textContent = [projectData.titol?.[activeLanguage], artist, year]
+      .filter(Boolean)
+      .join(", ");
+    info.appendChild(firstP);
 
-    const details = document.createElement("div");
-    details.className = "project-details";
+    // Resto de descripción: textos[] (array de párrafos). Fallback a text[lang]
+    const paragraphs = Array.isArray(projectData.textos) && projectData.textos.length
+      ? projectData.textos
+      : (projectData.text && projectData.text[activeLanguage] ? [projectData.text[activeLanguage]] : []);
 
-    const client = document.createElement("p");
-    client.className = "project-detail";
-    client.textContent = projectData.client[activeLanguage];
-
-    const lloc = document.createElement("p");
-    lloc.className = "project-detail";
-    lloc.textContent = projectData.lloc[activeLanguage];
-
-    const data = document.createElement("p");
-    data.className = "project-detail";
-    data.textContent = projectData.data;
-
-    const text = document.createElement("p");
-    text.className = "project-text";
-    text.textContent = projectData.text[activeLanguage];
-
-    details.appendChild(client);
-    details.appendChild(lloc);
-    details.appendChild(data);
-
-    info.appendChild(title);
-    info.appendChild(details);
-    info.appendChild(text);
+    paragraphs.forEach((p) => {
+      const para = document.createElement("p");
+      para.className = "project-text";
+      para.innerHTML = formatInline(p).replace(/\n/g, "<br>");
+      info.appendChild(para);
+    });
 
     content.appendChild(info);
 
@@ -373,16 +364,33 @@ function updateProjectsContent() {
     const section = document.getElementById(`project-${project.slug}`);
     if (!section) return;
 
-    // Actualizar textos
-    const title = section.querySelector(".project-title");
-    const client = section.querySelectorAll(".project-detail")[0];
-    const lloc = section.querySelectorAll(".project-detail")[1];
-    const text = section.querySelector(".project-text");
+    // Actualizar textos (mínimo): reconstruir los párrafos dentro de .project-info
+    const info = section.querySelector(".project-info");
+    if (info) {
+      // Limpia todo el contenido de info y vuelve a crearlo con el formato minimal
+      while (info.firstChild) info.removeChild(info.firstChild);
+
+      const firstP = document.createElement("p");
+      firstP.className = "project-text"; // mismo estilo para todo
+      const artist = project.autor || (projectData.client?.[activeLanguage] || "");
+      const year = (projectData.data || "").toString();
+      firstP.textContent = [projectData.titol?.[activeLanguage], artist, year]
+        .filter(Boolean)
+        .join(", ");
+      info.appendChild(firstP);
+
+      const paragraphs = Array.isArray(projectData.textos) && projectData.textos.length
+        ? projectData.textos
+        : (projectData.text && projectData.text[activeLanguage] ? [projectData.text[activeLanguage]] : []);
+
+      paragraphs.forEach((p) => {
+        const para = document.createElement("p");
+        para.className = "project-text";
+        para.innerHTML = formatInline(p).replace(/\n/g, "<br>");
+        info.appendChild(para);
+      });
+    }
     const img = section.querySelector('.media-frame.hero .media-image');
-    if (title) title.textContent = projectData.titol[activeLanguage];
-    if (client) client.textContent = projectData.client[activeLanguage];
-    if (lloc) lloc.textContent = projectData.lloc[activeLanguage];
-    if (text) text.textContent = projectData.text[activeLanguage];
     if (img) {
       // alt + escala
       img.alt = projectData.titol[activeLanguage];
