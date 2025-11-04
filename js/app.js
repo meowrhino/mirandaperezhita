@@ -3,13 +3,16 @@ let homeData = null;
 let projectsData = {};
 let activeLanguage = "cat";
 let activeAuthor = null;
+let aboutData = null;
 
 // Elementos del DOM
 const sidebar = document.getElementById("sidebar");
 const projectMenu = document.getElementById("project-menu");
 const projectsContainer = document.getElementById("projects-container");
 const langButtons = document.querySelectorAll(".lang-btn");
-const authorButtons = document.querySelectorAll(".author-btn");
+const authorButtons = document.querySelectorAll('.author-btn[data-author]');
+const aboutToggle = document.getElementById("about-toggle");
+const aboutPanel = document.getElementById("about-panel");
 
 // Inicializar la aplicación
 async function init() {
@@ -17,6 +20,9 @@ async function init() {
     // Cargar home.json
     const homeResponse = await fetch("data/home.json");
     homeData = await homeResponse.json();
+
+    // Cargar about.json
+    await loadAbout();
 
     // Actualizar color de fondo del sidebar
     updateSidebarColor();
@@ -34,6 +40,54 @@ async function init() {
   } catch (error) {
     console.error("Error al cargar datos:", error);
   }
+}
+// Cargar about.json (formato: { "texto": ["párrafo 1", "párrafo 2", ...] })
+async function loadAbout() {
+  try {
+    const res = await fetch('data/about.json');
+    if (!res.ok) return; // opcional: no bloquear si no existe
+    aboutData = await res.json();
+    renderAbout();
+  } catch (e) {
+    // silencioso: si no existe o falla, lo veremos más adelante
+  }
+}
+
+// Renderizar contenido del About desde aboutData
+function renderAbout() {
+  if (!aboutPanel) return;
+  aboutPanel.innerHTML = '';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'about-content';
+
+  const h2 = document.createElement('h2');
+  h2.textContent = 'About';
+  wrap.appendChild(h2);
+
+  const textos = Array.isArray(aboutData?.texto) ? aboutData.texto : [];
+  textos.forEach(t => {
+    const p = document.createElement('p');
+    p.innerHTML = formatInline(t); // soporta **, *, __, [texto](url)
+    wrap.appendChild(p);
+  });
+
+  aboutPanel.appendChild(wrap);
+}
+
+// Conversión mínima de marcadores a HTML: **negrita**, *cursiva*, __subrayado__, [texto](url)
+function formatInline(s = '') {
+  // Escapar básico de < y & para evitar inyección, luego aplicar reemplazos controlados
+  let out = String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  // links [texto](url)
+  out = out.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|mailto:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1<\/a>');
+  // **bold**
+  out = out.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1<\/strong>');
+  // __underline__
+  out = out.replace(/__([\s\S]+?)__/g, '<u>$1<\/u>');
+  // *italic*
+  out = out.replace(/(^|[^\*])\*([^\*][\s\S]*?)\*(?!\*)/g, '$1<em>$2<\/em>');
+  return out;
 }
 
 // Obtener proyectos visibles del home.json
@@ -122,7 +176,6 @@ function renderProjects() {
   if (!wrapper) {
     wrapper = document.createElement("div");
     wrapper.className = "projects-wrapper";
-    projectsContainer.innerHTML = "";
     projectsContainer.appendChild(wrapper);
   }
 
@@ -279,6 +332,13 @@ function setupEventListeners() {
       updateProjectsVisibility();
     });
   });
+
+  if (aboutToggle && aboutPanel) {
+    aboutToggle.addEventListener('click', () => {
+      const isOpen = aboutPanel.classList.toggle('open');
+      aboutPanel.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+    });
+  }
 }
 
 // Actualizar contenido de proyectos (sin recrear el DOM completo)

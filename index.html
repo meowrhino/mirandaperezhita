@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="ca">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>miranda perez-hita</title>
     <base href="./">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap"
+        rel="stylesheet">
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
     <!-- Columna izquierda -->
     <aside id="sidebar">
@@ -22,12 +25,8 @@
                 <button class="lang-btn" data-lang="es">ES</button>
             </div>
 
-            <!-- Selector de autores -->
-            <div class="author-selector">
-                <button class="author-btn" data-author="miranda perez hita">miranda perez hita</button>
-                <!-- <button class="author-btn" data-author="equipa grafica">equipa grafica</button> -->
-                <!-- <button class="author-btn" data-author="6508">6508</button> -->
-            </div>
+            <button id="about-toggle" class="about-btn">miranda perez hita</button>
+
         </div>
 
         <!-- Parte inferior: menú de navegación -->
@@ -38,9 +37,13 @@
 
     <!-- Columna derecha: contenedor de proyectos -->
     <main id="projects-container">
+        <section id="about-panel" class="about-panel" aria-hidden="true">
+          <!-- contenido generado por JS desde data/about.json -->
+        </section>
         <!-- Se llenará dinámicamente con JavaScript -->
     </main>
 
     <script src="js/app.js"></script>
 </body>
+
 </html>

@@ -1,3 +1,10 @@
+
+/* About panel (mínimo por ahora) */
+.about-panel { display: none; padding: 1rem; }
+.about-panel.open { display: block; }
+.about-panel h2 { font-size: 1.5rem; margin-bottom: .5rem; }
+.about-panel p + p { margin-top: .75rem; }
+.about-panel a { text-decoration: underline; }
 * {
   margin: 0;
   padding: 0;
@@ -57,13 +64,13 @@ body {
   font-weight: bold;
 }
 
-.author-selector {
+/* .author-selector {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
+} */
 
-.author-btn {
+.about-btn {
   background: none;
   border: none;
   font-size: 1rem;
@@ -73,7 +80,7 @@ body {
   transition: font-weight 0.2s;
 }
 
-.author-btn.active {
+.about-btn.active {
   font-weight: bold;
 }
 
@@ -260,4 +267,49 @@ body {
 /* Espaciado de la imagen principal (antes lo daba .project-image) */
 .media-frame.hero {
   margin-bottom: 2rem;
+}
+
+
+/* === About panel layout === */
+.about-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(48rem, 100%);
+  background: var(--about-bg, #fff);
+  color: var(--about-fg, inherit);
+  box-shadow: -2px 0 12px rgba(0,0,0,.15);
+  transform: translateX(100%);
+  transition: transform 300ms ease;
+  z-index: 30;
+  overflow-y: auto;
+  padding: 2rem;
+}
+.about-panel.open { transform: translateX(0); }
+
+.about-content {
+  max-width: 40rem;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+.about-content h2 {
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+}
+.about-content p + p {
+  margin-top: 1rem;
+}
+
+/* mobile: desde abajo */
+@media (max-width: 700px) {
+  .about-panel {
+    top: auto;
+    left: 0;
+    width: 100%;
+    height: 80vh;
+    transform: translateY(100%);
+    box-shadow: 0 -2px 12px rgba(0,0,0,.15);
+  }
+  .about-panel.open { transform: translateY(0); }
 }
