@@ -120,7 +120,7 @@ body {
 }
 
 .project-section {
-  min-height: 100vh;
+  /* min-height: 100vh; */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -176,6 +176,7 @@ body {
 @media (max-width: 599px) {
   body {
     flex-direction: column;
+    overflow: auto; /* allow page scroll on mobile */
   }
 
   #sidebar {
@@ -186,6 +187,9 @@ body {
 
   #projects-container {
     width: 100%;
+    height: auto;      /* override desktop 100vh */
+    min-height: 0;     /* ensure it can shrink */
+    overflow: visible; /* let the whole page scroll */
   }
 
   .projects-wrapper {
