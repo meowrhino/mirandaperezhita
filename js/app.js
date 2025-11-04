@@ -2,7 +2,6 @@
 let homeData = null;
 let projectsData = {};
 let activeLanguage = "cat";
-let activeAuthor = null;
 let aboutData = null;
 
 // Elementos del DOM
@@ -10,7 +9,6 @@ const sidebar = document.getElementById("sidebar");
 const projectMenu = document.getElementById("project-menu");
 const projectsContainer = document.getElementById("projects-container");
 const langButtons = document.querySelectorAll(".lang-btn");
-const authorButtons = document.querySelectorAll('.author-btn[data-author]');
 const aboutToggle = document.getElementById("about-toggle");
 const aboutPanel = document.getElementById("about-panel");
 
@@ -108,6 +106,19 @@ function formatInline(s = '') {
   return out;
 }
 
+// Devuelve el texto en el idioma activo con fallback a catalán y primer valor disponible
+function getLocalizedText(source, lang = activeLanguage) {
+  if (!source) return '';
+  if (typeof source === 'string') return source;
+  if (typeof source === 'object') {
+    if (typeof source[lang] === 'string') return source[lang];
+    if (typeof source.cat === 'string') return source.cat;
+    const first = Object.values(source).find((value) => typeof value === 'string' && value.trim());
+    return first || '';
+  }
+  return '';
+}
+
 // Obtener proyectos visibles del home.json
 function getVisibleProjectsFromHome() {
   return homeData.projectes_visibles.filter(
@@ -118,9 +129,16 @@ function getVisibleProjectsFromHome() {
 // Cargar todos los proyectos
 async function loadProjects(visibleProjects) {
   const promises = visibleProjects.map(async (project) => {
-    const response = await fetch(`data/${project.slug}.json`);
-    const data = await response.json();
-    projectsData[project.slug] = data;
+    try {
+      const response = await fetch(`data/${project.slug}.json`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      projectsData[project.slug] = data;
+    } catch (err) {
+      console.warn('No se pudo cargar', project.slug, err);
+    }
   });
 
   await Promise.all(promises);
@@ -160,7 +178,8 @@ function makeMediaFrame(src, altText, scalePercent = 100) {
 
 // Actualizar color de fondo del sidebar
 function updateSidebarColor() {
-  const color = homeData.home_colors[activeLanguage];
+  const colors = homeData?.home_colors || {};
+  const color = colors[activeLanguage] ?? colors.cat ?? '#ffffff';
   document.body.style.backgroundColor = color;
   if (sidebar) sidebar.style.backgroundColor = color; // sincroniza el fondo del sidebar en móvil y desktop
 }
@@ -177,7 +196,8 @@ function renderProjectMenu() {
 
     const button = document.createElement("button");
     button.className = "project-link";
-    button.textContent = projectData.titol[activeLanguage];
+    const title = getLocalizedText(projectData.titol);
+    button.textContent = title || project.slug;
     button.onclick = () => scrollToProject(project.slug);
 
     projectMenu.appendChild(button);
@@ -218,35 +238,48 @@ function renderProjects() {
 
     const content = document.createElement("div");
     content.className = "project-content";
+    const projectTitle = getLocalizedText(projectData.titol);
 
     // Imagen principal (usa el mismo sistema genérico que la galería)
-    const heroScale = projectData.primera_imatge?.size ?? 100;
-    const hero = makeMediaFrame(
-      projectData.primera_imatge.src,
-      projectData.titol[activeLanguage],
-      heroScale
-    );
-    hero.classList.add('hero');
-    content.appendChild(hero);
+    const heroMeta = projectData.primera_imatge;
+    if (heroMeta?.src) {
+      const heroScale = heroMeta.size ?? 100;
+      const hero = makeMediaFrame(
+        heroMeta.src,
+        projectTitle,
+        heroScale
+      );
+      hero.classList.add('hero');
+      content.appendChild(hero);
+    }
 
     // Información del proyecto (mínima): todo en mismos estilos
     const info = document.createElement("div");
     info.className = "project-info";
 
-    // Primera línea: [título], [artista], [año] (sin clase especial)
+    // Primera línea: [título], [cliente], [año] (usando siempre titol, client, data desde projectData)
     const firstP = document.createElement("p");
-    firstP.className = "project-text"; // usamos el mismo estilo que el resto
-    const artist = project.autor || (projectData.client?.[activeLanguage] || "");
+    firstP.className = "project-text";
+    let clientVal = "";
+    if (typeof projectData.client === "object" && projectData.client !== null) {
+      clientVal = getLocalizedText(projectData.client);
+    } else if (typeof projectData.client === "string") {
+      clientVal = projectData.client;
+    }
     const year = (projectData.data || "").toString();
-    firstP.textContent = [projectData.titol?.[activeLanguage], artist, year]
-      .filter(Boolean)
-      .join(", ");
+    firstP.textContent = [
+      projectTitle,
+      clientVal,
+      year
+    ].filter(Boolean).join(", ");
     info.appendChild(firstP);
 
     // Resto de descripción: textos[] (array de párrafos). Fallback a text[lang]
-    const paragraphs = Array.isArray(projectData.textos) && projectData.textos.length
+    const hasTextos = Array.isArray(projectData.textos) && projectData.textos.length;
+    const fallbackText = projectData.text ? getLocalizedText(projectData.text) : '';
+    const paragraphs = hasTextos
       ? projectData.textos
-      : (projectData.text && projectData.text[activeLanguage] ? [projectData.text[activeLanguage]] : []);
+      : (fallbackText ? [fallbackText] : []);
 
     paragraphs.forEach((p) => {
       const para = document.createElement("p");
@@ -269,7 +302,7 @@ function renderProjects() {
       if (!imgMeta || !imgMeta.src) return;
       const item = makeMediaFrame(
         imgMeta.src,
-        projectData.titol[activeLanguage] || '',
+        projectTitle,
         imgMeta.size
       );
       gallery.appendChild(item);
@@ -283,15 +316,9 @@ function renderProjects() {
   });
 }
 
-// Obtener proyectos visibles según filtros activos
+// Obtener proyectos visibles (por ahora sin filtros adicionales)
 function getVisibleProjects() {
-  let visible = getVisibleProjectsFromHome();
-
-  if (activeAuthor) {
-    visible = visible.filter((p) => p.autor === activeAuthor);
-  }
-
-  return visible;
+  return getVisibleProjectsFromHome();
 }
 
 // Scroll suave a un proyecto
@@ -322,34 +349,26 @@ function setupEventListeners() {
     });
   });
 
-  // Selector de autores
-  authorButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const author = btn.dataset.author;
-
-      if (activeAuthor === author) {
-        // Desactivar autor
-        activeAuthor = null;
-        btn.classList.remove("active");
-      } else {
-        // Activar nuevo autor
-        authorButtons.forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        activeAuthor = author;
-      }
-
-      // Actualizar vista
-      renderProjectMenu();
-      updateProjectsVisibility();
-      updateStickyOffset();
-    });
-  });
-
   if (aboutToggle && aboutPanel) {
-    aboutToggle.addEventListener('click', () => {
+    const toggleAbout = () => {
       const isOpen = aboutPanel.classList.toggle('open');
       aboutPanel.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-    });
+      aboutToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    };
+
+    aboutToggle.setAttribute('aria-expanded', 'false');
+    aboutToggle.addEventListener('click', toggleAbout);
+
+    const handleEscClose = (event) => {
+      if (event.key === 'Escape' && aboutPanel.classList.contains('open')) {
+        aboutPanel.classList.remove('open');
+        aboutPanel.setAttribute('aria-hidden', 'true');
+        aboutToggle.setAttribute('aria-expanded', 'false');
+        aboutToggle.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscClose);
   }
 }
 
@@ -371,17 +390,26 @@ function updateProjectsContent() {
       while (info.firstChild) info.removeChild(info.firstChild);
 
       const firstP = document.createElement("p");
-      firstP.className = "project-text"; // mismo estilo para todo
-      const artist = project.autor || (projectData.client?.[activeLanguage] || "");
+      firstP.className = "project-text";
+      let clientVal = "";
+      if (typeof projectData.client === "object" && projectData.client !== null) {
+        clientVal = getLocalizedText(projectData.client);
+      } else if (typeof projectData.client === "string") {
+        clientVal = projectData.client;
+      }
       const year = (projectData.data || "").toString();
-      firstP.textContent = [projectData.titol?.[activeLanguage], artist, year]
-        .filter(Boolean)
-        .join(", ");
+      firstP.textContent = [
+        getLocalizedText(projectData.titol),
+        clientVal,
+        year
+      ].filter(Boolean).join(", ");
       info.appendChild(firstP);
 
-      const paragraphs = Array.isArray(projectData.textos) && projectData.textos.length
+      const hasTextos = Array.isArray(projectData.textos) && projectData.textos.length;
+      const fallbackText = projectData.text ? getLocalizedText(projectData.text) : '';
+      const paragraphs = hasTextos
         ? projectData.textos
-        : (projectData.text && projectData.text[activeLanguage] ? [projectData.text[activeLanguage]] : []);
+        : (fallbackText ? [fallbackText] : []);
 
       paragraphs.forEach((p) => {
         const para = document.createElement("p");
@@ -393,7 +421,7 @@ function updateProjectsContent() {
     const img = section.querySelector('.media-frame.hero .media-image');
     if (img) {
       // alt + escala
-      img.alt = projectData.titol[activeLanguage];
+      img.alt = getLocalizedText(projectData.titol);
       let heroScale = parseInt(projectData.primera_imatge?.size, 10);
       if (isNaN(heroScale)) heroScale = 100;
       heroScale = Math.max(1, Math.min(100, heroScale));
@@ -416,24 +444,8 @@ function updateProjectsContent() {
     const gallery = section.querySelector('.media-group');
     if (gallery) {
       gallery.querySelectorAll("img").forEach((gimg) => {
-        gimg.alt = projectData.titol[activeLanguage] || "";
+        gimg.alt = getLocalizedText(projectData.titol) || "";
       });
-    }
-  });
-}
-
-// Actualizar visibilidad de proyectos
-function updateProjectsVisibility() {
-  const visibleProjects = getVisibleProjects();
-  const visibleSlugs = visibleProjects.map((p) => p.slug);
-
-  const allSections = document.querySelectorAll(".project-section");
-  allSections.forEach((section) => {
-    const slug = section.id.replace("project-", "");
-    if (visibleSlugs.includes(slug)) {
-      section.classList.remove("hidden");
-    } else {
-      section.classList.add("hidden");
     }
   });
 }
