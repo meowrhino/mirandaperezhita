@@ -3,6 +3,8 @@ let homeData = null;
 let projectsData = {};
 let activeLanguage = "cat";
 let aboutData = null;
+let activeProjectSlug = null;
+let projectObserver = null;
 
 // Elementos del DOM
 const sidebar = document.getElementById("sidebar");
@@ -48,8 +50,17 @@ async function init() {
     renderProjects();
 
     updateStickyOffset();
-    window.addEventListener('resize', debounce(updateStickyOffset, 150));
-    window.addEventListener('load', updateStickyOffset);
+
+    const handleLayoutChange = debounce(() => {
+      updateStickyOffset();
+      setupProjectObserver();
+    }, 150);
+
+    window.addEventListener('resize', handleLayoutChange);
+    window.addEventListener('load', () => {
+      updateStickyOffset();
+      setupProjectObserver();
+    });
 
     // Configurar event listeners
     setupEventListeners();
@@ -196,12 +207,18 @@ function renderProjectMenu() {
 
     const button = document.createElement("button");
     button.className = "project-link";
+    button.dataset.slug = project.slug;
     const title = getLocalizedText(projectData.titol);
     button.textContent = title || project.slug;
     button.onclick = () => scrollToProject(project.slug);
 
     projectMenu.appendChild(button);
   });
+
+  const fallbackSlug = activeProjectSlug ?? (visibleProjects[0]?.slug ?? null);
+  if (fallbackSlug) {
+    setActiveProject(fallbackSlug, { scrollIntoView: false });
+  }
 }
 
 // Renderizar proyectos
@@ -229,6 +246,7 @@ function renderProjects() {
     const section = document.createElement("section");
     section.className = "project-section";
     section.id = `project-${project.slug}`;
+    section.dataset.slug = project.slug;
     section.style.backgroundColor = project.color;
 
     // Ocultar si no está en la lista de visibles
@@ -314,6 +332,16 @@ function renderProjects() {
 
     wrapper.appendChild(section);
   });
+
+  if (!activeProjectSlug && visibleProjects.length) {
+    activeProjectSlug = visibleProjects[0].slug;
+  }
+
+  if (activeProjectSlug) {
+    setActiveProject(activeProjectSlug, { scrollIntoView: false });
+  }
+
+  setupProjectObserver();
 }
 
 // Obtener proyectos visibles (por ahora sin filtros adicionales)
@@ -326,7 +354,118 @@ function scrollToProject(slug) {
   const element = document.getElementById(`project-${slug}`);
   if (element) {
     element.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveProject(slug);
   }
+}
+
+function setActiveProject(slug, options = {}) {
+  if (!slug) return;
+  const { scrollIntoView = true } = options;
+
+  if (activeProjectSlug === slug && !scrollIntoView) {
+    return;
+  }
+
+  if (!projectMenu) {
+    activeProjectSlug = slug;
+    return;
+  }
+
+  const buttons = Array.from(projectMenu.querySelectorAll(".project-link"));
+  if (!buttons.length) {
+    activeProjectSlug = slug;
+    return;
+  }
+
+  let targetSlug = slug;
+  let activeButton = buttons.find((btn) => btn.dataset.slug === slug) || null;
+
+  if (!activeButton && buttons.length) {
+    activeButton = buttons[0];
+    targetSlug = activeButton.dataset.slug || slug;
+  }
+
+  if (activeProjectSlug === targetSlug && !scrollIntoView) {
+    return;
+  }
+
+  buttons.forEach((btn) => {
+    const isActive = btn.dataset.slug === targetSlug;
+    btn.classList.toggle("active", isActive);
+    if (isActive) {
+      btn.setAttribute("aria-current", "true");
+    } else {
+      btn.removeAttribute("aria-current");
+    }
+  });
+
+  activeProjectSlug = targetSlug;
+
+  if (activeButton && scrollIntoView) {
+    const shouldScrollMenu = projectMenu.scrollWidth > projectMenu.clientWidth;
+    if (shouldScrollMenu) {
+      activeButton.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center"
+      });
+    }
+  }
+}
+
+function isScrollableContainer(element) {
+  if (!element) return false;
+  const style = getComputedStyle(element);
+  const overflowY = style.overflowY || '';
+  const overflow = style.overflow || '';
+  const scrollValues = ['auto', 'scroll', 'overlay'];
+  const hasScrollStyle = scrollValues.some((val) => overflowY.includes(val) || overflow.includes(val));
+  if (!hasScrollStyle) return false;
+  return Math.ceil(element.scrollHeight) > Math.ceil(element.clientHeight);
+}
+
+function setupProjectObserver() {
+  if (!projectsContainer) return;
+
+  if (projectObserver) {
+    projectObserver.disconnect();
+  }
+
+  const sections = projectsContainer.querySelectorAll(".project-section:not(.hidden)");
+  if (!sections.length) return;
+
+  let observerRoot = null;
+  try {
+    if (isScrollableContainer(projectsContainer)) {
+      observerRoot = projectsContainer;
+    }
+  } catch (_) {
+    observerRoot = null;
+  }
+
+  projectObserver = new IntersectionObserver((entries) => {
+    const visibleEntries = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+    if (visibleEntries.length) {
+      const slug = visibleEntries[0].target.dataset.slug;
+      if (slug && slug !== activeProjectSlug) {
+        setActiveProject(slug, { scrollIntoView: false });
+      }
+    }
+  }, {
+    root: observerRoot,
+    rootMargin: '0px 0px -40% 0px',
+    threshold: [0.25, 0.5, 0.75],
+  });
+
+  sections.forEach((section) => {
+    if (!section.dataset.slug) {
+      section.dataset.slug = section.id.replace("project-", "");
+    }
+    projectObserver.observe(section);
+  });
 }
 
 // Configurar event listeners
