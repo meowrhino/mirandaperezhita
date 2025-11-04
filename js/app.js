@@ -5,6 +5,13 @@ let activeLanguage = "cat";
 let aboutData = null;
 let activeProjectSlug = null;
 let projectObserver = null;
+let scrollSyncRoot = null;
+let scrollSyncFrame = null;
+let scrollSyncTargets = [];
+let homeProjectsBySlug = new Map();
+
+const PASSIVE_SCROLL_OPTIONS = { passive: true };
+const DEFAULT_TEXT_COLOR = '#000000';
 
 // Elementos del DOM
 const sidebar = document.getElementById("sidebar");
@@ -34,6 +41,7 @@ async function init() {
     // Cargar home.json
     const homeResponse = await fetch("data/home.json");
     homeData = await homeResponse.json();
+    prepareProjectColorData();
 
     // Cargar about.json
     await loadAbout();
@@ -130,6 +138,108 @@ function getLocalizedText(source, lang = activeLanguage) {
   return '';
 }
 
+function prepareProjectColorData() {
+  homeProjectsBySlug = new Map();
+  const projects = Array.isArray(homeData?.projectes_visibles) ? homeData.projectes_visibles : [];
+  const globalCurtRaw = Number.isFinite(homeData?.nota_de_curt) ? homeData.nota_de_curt : 50;
+  const threshold = clamp01(globalCurtRaw / 100);
+
+  projects.forEach((project) => {
+    if (!project || typeof project.slug !== 'string') return;
+    const rgb = hexToRgb(project.color);
+    if (!rgb) {
+      project.nota_de_curt = false;
+      project.color_texto = DEFAULT_TEXT_COLOR;
+      project.color_texto_proyecto = DEFAULT_TEXT_COLOR;
+      homeProjectsBySlug.set(project.slug, project);
+      return;
+    }
+
+    const tone = getTone(rgb);
+    const isLight = tone >= threshold;
+    project.nota_de_curt = isLight;
+
+    // Si el color es claro, mezclamos con negro para tener más contraste; si es oscuro, mezclamos con blanco.
+    const targetRgb = isLight ? { r: 0, g: 0, b: 0 } : { r: 255, g: 255, b: 255 };
+    const targetRgbForNav = targetRgb;
+    const mixedForNav = mixRgb(rgb, targetRgbForNav, 0.5);
+    const navHex = rgbToHex(mixedForNav);
+    project.color_texto = navHex;
+
+    const navRgb = hexToRgb(navHex);
+    const mixedForProject = navRgb
+      ? mixRgb(navRgb, targetRgb, 0.5)
+      : mixRgb(rgb, targetRgb, 0.75);
+    project.color_texto_proyecto = rgbToHex(mixedForProject);
+
+    homeProjectsBySlug.set(project.slug, project);
+  });
+}
+
+function hexToRgb(hex) {
+  if (!hex || typeof hex !== 'string') return null;
+  let value = hex.trim();
+  if (value.startsWith('#')) value = value.slice(1);
+  if (!(value.length === 3 || value.length === 6)) return null;
+  if (value.length === 3) {
+    value = value.split('').map((ch) => ch + ch).join('');
+  }
+  const int = parseInt(value, 16);
+  if (Number.isNaN(int)) return null;
+  const r = parseInt(value.slice(0, 2), 16);
+  const g = parseInt(value.slice(2, 4), 16);
+  const b = parseInt(value.slice(4, 6), 16);
+  return { r, g, b };
+}
+
+function rgbToHex({ r, g, b }) {
+  const clampByte = (n) => {
+    if (!Number.isFinite(n)) return 0;
+    return Math.min(255, Math.max(0, Math.round(n)));
+  };
+  const toHex = (n) => clampByte(n).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function mixRgb(base, target, factor = 0.5) {
+  const f = clamp01(factor);
+  const inv = 1 - f;
+  return {
+    r: base.r * inv + target.r * f,
+    g: base.g * inv + target.g * f,
+    b: base.b * inv + target.b * f
+  };
+}
+
+function getTone({ r, g, b }) {
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return clamp01(luminance / 255);
+}
+
+function clamp01(value) {
+  if (!Number.isFinite(value)) return 0;
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+  return value;
+}
+
+function getProjectMeta(slug) {
+  if (!slug) return null;
+  if (homeProjectsBySlug instanceof Map && homeProjectsBySlug.size) {
+    return homeProjectsBySlug.get(slug) || null;
+  }
+  if (Array.isArray(homeData?.projectes_visibles)) {
+    return homeData.projectes_visibles.find((p) => p.slug === slug) || null;
+  }
+  return null;
+}
+
+function applyNavColorForSlug(slug) {
+  const meta = getProjectMeta(slug);
+  const navColor = meta?.color_texto || DEFAULT_TEXT_COLOR;
+  document.documentElement.style.setProperty('--active-project-text-color', navColor);
+}
+
 // Obtener proyectos visibles del home.json
 function getVisibleProjectsFromHome() {
   return homeData.projectes_visibles.filter(
@@ -208,6 +318,11 @@ function renderProjectMenu() {
     const button = document.createElement("button");
     button.className = "project-link";
     button.dataset.slug = project.slug;
+    if (project.color_texto) {
+      button.dataset.textColor = project.color_texto;
+    } else {
+      delete button.dataset.textColor;
+    }
     const title = getLocalizedText(projectData.titol);
     button.textContent = title || project.slug;
     button.onclick = () => scrollToProject(project.slug);
@@ -248,6 +363,15 @@ function renderProjects() {
     section.id = `project-${project.slug}`;
     section.dataset.slug = project.slug;
     section.style.backgroundColor = project.color;
+    if (typeof project.nota_de_curt !== 'undefined') {
+      section.dataset.notaCurt = String(Boolean(project.nota_de_curt));
+    } else {
+      delete section.dataset.notaCurt;
+    }
+    const sectionTextColor = project.color_texto_proyecto || project.color_texto || DEFAULT_TEXT_COLOR;
+    section.dataset.textColor = sectionTextColor;
+    section.style.setProperty('--project-text-color', sectionTextColor);
+    section.style.color = sectionTextColor;
 
     // Ocultar si no está en la lista de visibles
     if (!visibleSlugs.includes(project.slug)) {
@@ -360,20 +484,18 @@ function scrollToProject(slug) {
 
 function setActiveProject(slug, options = {}) {
   if (!slug) return;
-  const { scrollIntoView = true } = options;
-
-  if (activeProjectSlug === slug && !scrollIntoView) {
-    return;
-  }
+  const { scrollIntoView = true, forceScroll = false } = options;
 
   if (!projectMenu) {
     activeProjectSlug = slug;
+    applyNavColorForSlug(slug);
     return;
   }
 
   const buttons = Array.from(projectMenu.querySelectorAll(".project-link"));
   if (!buttons.length) {
     activeProjectSlug = slug;
+    applyNavColorForSlug(slug);
     return;
   }
 
@@ -385,7 +507,10 @@ function setActiveProject(slug, options = {}) {
     targetSlug = activeButton.dataset.slug || slug;
   }
 
-  if (activeProjectSlug === targetSlug && !scrollIntoView) {
+  const slugChanged = activeProjectSlug !== targetSlug;
+
+  if (!slugChanged && !forceScroll && !scrollIntoView) {
+    applyNavColorForSlug(targetSlug);
     return;
   }
 
@@ -400,8 +525,9 @@ function setActiveProject(slug, options = {}) {
   });
 
   activeProjectSlug = targetSlug;
+  applyNavColorForSlug(targetSlug);
 
-  if (activeButton && scrollIntoView) {
+  if (activeButton && (forceScroll || (scrollIntoView && slugChanged))) {
     const shouldScrollMenu = projectMenu.scrollWidth > projectMenu.clientWidth;
     if (shouldScrollMenu) {
       activeButton.scrollIntoView({
@@ -410,6 +536,78 @@ function setActiveProject(slug, options = {}) {
         inline: "center"
       });
     }
+  }
+}
+
+function cleanupScrollSync() {
+  if (scrollSyncFrame !== null) {
+    cancelAnimationFrame(scrollSyncFrame);
+    scrollSyncFrame = null;
+  }
+  if (scrollSyncTargets.length) {
+    scrollSyncTargets.forEach((target) => {
+      target.removeEventListener('scroll', onScrollSync, PASSIVE_SCROLL_OPTIONS);
+    });
+    scrollSyncTargets = [];
+  }
+  scrollSyncRoot = null;
+}
+
+function setupScrollSync(root) {
+  cleanupScrollSync();
+
+  scrollSyncRoot = root ?? null;
+
+  if (root && typeof root.addEventListener === 'function') {
+    root.addEventListener('scroll', onScrollSync, PASSIVE_SCROLL_OPTIONS);
+    scrollSyncTargets.push(root);
+  } else {
+    window.addEventListener('scroll', onScrollSync, PASSIVE_SCROLL_OPTIONS);
+    scrollSyncTargets.push(window);
+  }
+}
+
+function onScrollSync() {
+  if (scrollSyncFrame !== null) return;
+  scrollSyncFrame = requestAnimationFrame(() => {
+    scrollSyncFrame = null;
+    updateActiveProjectFromScroll(scrollSyncRoot);
+  });
+}
+
+function updateActiveProjectFromScroll(root) {
+  if (!projectsContainer) return;
+  const sections = Array.from(projectsContainer.querySelectorAll(".project-section:not(.hidden)"));
+  if (!sections.length) return;
+
+  const rootRect = root ? root.getBoundingClientRect() : null;
+  const viewTop = rootRect ? rootRect.top : 0;
+  const viewBottom = rootRect ? rootRect.bottom : window.innerHeight || document.documentElement.clientHeight;
+  const viewCenter = rootRect
+    ? (rootRect.top + rootRect.bottom) / 2
+    : (window.innerHeight || document.documentElement.clientHeight) / 2;
+
+  let bestSlug = null;
+  let bestDistance = Infinity;
+
+  sections.forEach((section) => {
+    if (section.classList.contains('hidden')) return;
+    const rect = section.getBoundingClientRect();
+    const intersectionTop = Math.max(rect.top, viewTop);
+    const intersectionBottom = Math.min(rect.bottom, viewBottom);
+    const visible = intersectionBottom > intersectionTop;
+    if (!visible) return;
+
+    const sectionCenter = rect.top + rect.height / 2;
+    const distance = Math.abs(sectionCenter - viewCenter);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestSlug = section.dataset.slug || section.id.replace("project-", "");
+    }
+  });
+
+  if (bestSlug) {
+    setActiveProject(bestSlug, { scrollIntoView: true });
   }
 }
 
@@ -432,7 +630,10 @@ function setupProjectObserver() {
   }
 
   const sections = projectsContainer.querySelectorAll(".project-section:not(.hidden)");
-  if (!sections.length) return;
+  if (!sections.length) {
+    cleanupScrollSync();
+    return;
+  }
 
   let observerRoot = null;
   try {
@@ -442,6 +643,9 @@ function setupProjectObserver() {
   } catch (_) {
     observerRoot = null;
   }
+
+  setupScrollSync(observerRoot);
+  updateActiveProjectFromScroll(observerRoot);
 
   projectObserver = new IntersectionObserver((entries) => {
     const visibleEntries = entries
@@ -521,6 +725,17 @@ function updateProjectsContent() {
 
     const section = document.getElementById(`project-${project.slug}`);
     if (!section) return;
+
+    if (typeof project.nota_de_curt !== 'undefined') {
+      section.dataset.notaCurt = String(Boolean(project.nota_de_curt));
+    } else {
+      delete section.dataset.notaCurt;
+    }
+
+    const sectionTextColor = project.color_texto_proyecto || project.color_texto || DEFAULT_TEXT_COLOR;
+    section.dataset.textColor = sectionTextColor;
+    section.style.setProperty('--project-text-color', sectionTextColor);
+    section.style.color = sectionTextColor;
 
     // Actualizar textos (mínimo): reconstruir los párrafos dentro de .project-info
     const info = section.querySelector(".project-info");

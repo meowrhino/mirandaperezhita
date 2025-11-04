@@ -10,6 +10,9 @@
 - Los botones (`.lang-btn`, `.project-link`) heredan el azul por defecto de Safari móvil; fijar explícitamente `color: inherit` (o un color calculado) y añadir `-webkit-appearance: none;` para eliminar estilos nativos.
 - Validar que los estados `:hover`, `:focus-visible` y `.active` mantienen la misma paleta tras el cambio.
 
+## 2bis. Variable global para `text-underline-offset`
+- Añadir en `:root` una variable (`--underline-offset`) y reemplazar en el CSS todos los usos de `text-underline-offset` con `var(--underline-offset)` para mantener consistencia y facilitar ajustes globales.
+
 ## 3. Cálculo dinámico de color de texto según project color
 - Leer `nota_de_curt` global (`0–100`) desde `homeData` y normalizarla como `threshold = nota_de_curt / 100`.
 - Para cada proyecto en `projectes_visibles`:

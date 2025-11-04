@@ -1,3 +1,8 @@
+:root {
+  --underline-offset: 0.2em;
+  --active-project-text-color: #000000;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -30,6 +35,7 @@ body {
   justify-content: space-between;
   transition: background-color 0.3s ease;
   overflow-y: auto;
+  color: var(--active-project-text-color);
 }
 
 .sidebar-top {
@@ -50,8 +56,11 @@ body {
   cursor: pointer;
   font-weight: normal;
   text-decoration: none;
-  text-underline-offset: 0.2em;
+  text-underline-offset: var(--underline-offset);
   transition: text-decoration-color 0.2s ease;
+  color: inherit;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .lang-btn.active,
@@ -74,6 +83,10 @@ body {
   text-align: left;
   font-weight: normal;
   transition: font-weight 0.2s;
+  color: inherit;
+  text-decoration: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .about-btn.active {
@@ -93,8 +106,11 @@ body {
   cursor: pointer;
   text-align: left;
   text-decoration: none;
-  text-underline-offset: 0.2em;
+  text-underline-offset: var(--underline-offset);
   transition: text-decoration-color 0.2s ease;
+  color: inherit;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .project-link:hover,

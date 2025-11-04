@@ -3,6 +3,8 @@
         "cat": "#E6D8C3",
         "es": "#F8E3CE"
     },
+    "nota_de_curt": 0,
+    "_comment": "nota_de_curt en 35 funciona bastante bien",
     "projectes_visibles": [
         {
             "slug": "new-ywork",
