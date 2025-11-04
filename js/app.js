@@ -35,6 +35,27 @@ function debounce(fn, delay = 150) {
   };
 }
 
+function updateSafeAreaVars() {
+  const root = document.documentElement;
+  if (!root) return;
+  const vv = window.visualViewport;
+  if (!vv) {
+    root.style.setProperty('--safe-top', '0px');
+    root.style.setProperty('--safe-bottom', '0px');
+    root.style.setProperty('--safe-left', '0px');
+    root.style.setProperty('--safe-right', '0px');
+    return;
+  }
+  const top = Math.max(0, vv.offsetTop || 0);
+  const left = Math.max(0, vv.offsetLeft || 0);
+  const bottom = Math.max(0, (window.innerHeight || 0) - vv.height - vv.offsetTop);
+  const right = Math.max(0, (window.innerWidth || 0) - vv.width - vv.offsetLeft);
+  root.style.setProperty('--safe-top', `${Math.round(top)}px`);
+  root.style.setProperty('--safe-bottom', `${Math.round(bottom)}px`);
+  root.style.setProperty('--safe-left', `${Math.round(left)}px`);
+  root.style.setProperty('--safe-right', `${Math.round(right)}px`);
+}
+
 // Inicializar la aplicación
 async function init() {
   try {
@@ -57,15 +78,18 @@ async function init() {
     renderProjectMenu();
     renderProjects();
 
+    updateSafeAreaVars();
     updateStickyOffset();
 
     const handleLayoutChange = debounce(() => {
+      updateSafeAreaVars();
       updateStickyOffset();
       setupProjectObserver();
     }, 150);
 
     window.addEventListener('resize', handleLayoutChange);
     window.addEventListener('load', () => {
+      updateSafeAreaVars();
       updateStickyOffset();
       setupProjectObserver();
     });
@@ -104,7 +128,7 @@ function renderAbout() {
   closeBtn.setAttribute('aria-label', 'Tancar');
   closeBtn.innerHTML = '&times;';
   closeBtn.addEventListener('click', () => {
-    setAboutOpen(false);
+    setAboutOpen(false, { focusToggle: true });
   });
   aboutPanel.appendChild(closeBtn);
 
@@ -127,6 +151,8 @@ function renderAbout() {
 
   wrap.appendChild(body);
 
+  aboutPanel.appendChild(wrap);
+
   const footer = document.createElement('div');
   footer.className = 'about-footer';
   const footerLink = document.createElement('a');
@@ -136,9 +162,28 @@ function renderAbout() {
   footerLink.textContent = 'web: meowrhino';
   footer.appendChild(footerLink);
 
-  wrap.appendChild(footer);
+  aboutPanel.appendChild(footer);
+  setAboutOpen(aboutPanel.classList.contains('open'));
+}
 
-  aboutPanel.appendChild(wrap);
+function setAboutOpen(isOpen, options = {}) {
+  if (!aboutPanel) return;
+  const { focusToggle = false } = options;
+  const open = Boolean(isOpen);
+  aboutPanel.classList.toggle('open', open);
+  aboutPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+  if (aboutToggle) {
+    aboutToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (!open && focusToggle) {
+      requestAnimationFrame(() => {
+        aboutToggle.focus();
+      });
+    }
+  }
+  document.documentElement.classList.toggle('about-open', open);
+  if (document.body) {
+    document.body.classList.toggle('about-open', open);
+  }
 }
 
 // Conversión mínima de marcadores a HTML: **negrita**, *cursiva*, __subrayado__, [texto](url)
@@ -726,20 +771,16 @@ function setupEventListeners() {
 
   if (aboutToggle && aboutPanel) {
     const toggleAbout = () => {
-      const isOpen = aboutPanel.classList.toggle('open');
-      aboutPanel.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-      aboutToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      const willOpen = !aboutPanel.classList.contains('open');
+      setAboutOpen(willOpen);
     };
 
-    aboutToggle.setAttribute('aria-expanded', 'false');
+    aboutToggle.setAttribute('aria-expanded', aboutPanel.classList.contains('open') ? 'true' : 'false');
     aboutToggle.addEventListener('click', toggleAbout);
 
     const handleEscClose = (event) => {
       if (event.key === 'Escape' && aboutPanel.classList.contains('open')) {
-        aboutPanel.classList.remove('open');
-        aboutPanel.setAttribute('aria-hidden', 'true');
-        aboutToggle.setAttribute('aria-expanded', 'false');
-        aboutToggle.focus();
+        setAboutOpen(false, { focusToggle: true });
       }
     };
 
