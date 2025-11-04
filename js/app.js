@@ -98,19 +98,45 @@ function renderAbout() {
   if (!aboutPanel) return;
   aboutPanel.innerHTML = '';
 
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'about-close';
+  closeBtn.type = 'button';
+  closeBtn.setAttribute('aria-label', 'Tancar');
+  closeBtn.innerHTML = '&times;';
+  closeBtn.addEventListener('click', () => {
+    setAboutOpen(false);
+  });
+  aboutPanel.appendChild(closeBtn);
+
   const wrap = document.createElement('div');
   wrap.className = 'about-content';
 
+  const body = document.createElement('div');
+  body.className = 'about-body';
+
   const h2 = document.createElement('h2');
   h2.textContent = 'miranda perez hita';
-  wrap.appendChild(h2);
+  body.appendChild(h2);
 
   const textos = Array.isArray(aboutData?.texto) ? aboutData.texto : [];
   textos.forEach(t => {
     const p = document.createElement('p');
     p.innerHTML = formatInline(t); // soporta **, *, __, [texto](url)
-    wrap.appendChild(p);
+    body.appendChild(p);
   });
+
+  wrap.appendChild(body);
+
+  const footer = document.createElement('div');
+  footer.className = 'about-footer';
+  const footerLink = document.createElement('a');
+  footerLink.href = 'https://meowrhino.github.io/becasDigMeow/';
+  footerLink.target = '_blank';
+  footerLink.rel = 'noopener noreferrer';
+  footerLink.textContent = 'web: meowrhino';
+  footer.appendChild(footerLink);
+
+  wrap.appendChild(footer);
 
   aboutPanel.appendChild(wrap);
 }
