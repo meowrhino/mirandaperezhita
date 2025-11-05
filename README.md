@@ -1,121 +1,110 @@
-# Portfolio Dinámico
+# mirandaperezhita — portfolio dinámico
 
-Sitio web de portfolio con filtros de idioma y autor, gestionado por archivos JSON.
+Sitio estático minimalista construido con HTML, CSS y JavaScript vainilla. Carga los proyectos desde archivos JSON, cambia de idioma en caliente y muestra un panel “About” superpuesto sin recargar la página.
 
-## Estructura de archivos
+## Arquitectura
+
+- `index.html`: sólo declara el layout (sidebar, contenedor de proyectos y panel About). Todo el contenido llega vía JS.
+- `js/app.js`: arranque `init()`, descarga de JSON, renderizado de menú y secciones, sincronización de scroll y panel About.
+- `css/styles.css`: tipografía EB Garamond, layout de dos columnas, sistema de imágenes basado en `--ratio`/`--scale` y transiciones suaves para el About.
+- `data/`: `home.json` define colores y qué proyectos son visibles; cada `*.json` describe un proyecto.
+- `images/`: recursos usados en los proyectos (con fallback en `images/reference/`).
 
 ```
-portfolio-dinamico/
-├── index.html          # Página principal
-├── css/
-│   └── styles.css      # Estilos CSS
-├── js/
-│   └── app.js          # Lógica JavaScript
+mirandaperezhita/
+├── index.html
+├── css/styles.css
+├── js/app.js
 ├── data/
-│   ├── home.json       # Configuración de la home (colores, proyectos visibles)
-│   └── [slug].json     # Archivo JSON por cada proyecto
+│   ├── home.json
+│   ├── about.json
+│   └── [slug].json
 └── images/
-    └── reference/      # Imágenes de referencia
 ```
 
-## Configuración
+## Flujo de la aplicación
 
-### home.json
+1. `init()` se ejecuta en `DOMContentLoaded`.
+2. Descarga `data/home.json`, prepara la mezcla de colores y pinta el fondo del sidebar según el idioma.
+3. Carga en paralelo los JSON de los proyectos visibles (`data/[slug].json`).
+4. Renderiza el menú lateral (botón por proyecto) y todas las secciones dentro de `#projects-container`.
+5. Activa listeners: cambio de idioma, apertura/cierre del About (`setAboutOpen`), sincronización de scroll (IntersectionObserver) y recalculo de `safe-area`.
+6. `updateProjectsContent()` reutiliza el DOM existente cuando se cambia de idioma para mantener todo ligero.
 
-Define los colores de la home según idioma y los proyectos visibles:
+### Datos esperados
+
+`data/home.json`:
 
 ```json
 {
-    "home_colors": {
-        "cat": "#F5E6D3",
-        "es": "#E8D4C0"
-    },
-    "projectes_visibles": [
-        {
-            "slug": "nombre-proyecto",
-            "color": "#B8D4E8",
-            "visible": true,
-            "autor": "miranda perez hita"
-        }
-    ]
+  "home_colors": {
+    "cat": "#E6D8C3",
+    "es": "#F8E3CE"
+  },
+  "nota_de_curt": 50,
+  "projectes_visibles": [
+    {
+      "slug": "new-ywork",
+      "color": "#748873",
+      "visible": true,
+      "autor": "miranda perez hita"
+    }
+  ]
 }
 ```
 
-### [slug].json
+- `home_colors`: color de fondo por idioma (fallback a `cat`).
+- `nota_de_curt`: 0–100. Con 0 se consideran todos los colores “oscuros” y se mezcla hacia negro.
+- `projectes_visibles`: orden y color base de cada proyecto.
 
-Cada proyecto tiene su propio archivo JSON con toda su información:
+`data/[slug].json`:
 
 ```json
 {
-    "slug": "nombre-proyecto",
-    "folder": "nombre-proyecto",
-    "primera_imatge": {
-        "src": "/images/proyecto/cover.jpg",
-        "size": "large"
-    },
-    "titol": {
-        "cat": "Título en catalán",
-        "es": "Título en español",
-        "link": ""
-    },
-    "client": {
-        "cat": "Cliente en catalán",
-        "es": "Cliente en español",
-        "link": ""
-    },
-    "lloc": {
-        "cat": "Lugar en catalán",
-        "es": "Lugar en español",
-        "link": ""
-    },
-    "data": "2024",
-    "text": {
-        "cat": "Descripción en catalán",
-        "es": "Descripción en español"
-    },
-    "imatges": []
+  "slug": "new-ywork",
+  "primera_imatge": { "src": "images/NY/1.jpg", "size": "100" },
+  "titol": { "cat": "New Ywork", "es": "New Ywork" },
+  "client": { "cat": "Jaume Cloret", "es": "Jaume Cloret" },
+  "data": "2024",
+  "text": {
+    "cat": "Disseny del catàleg…",
+    "es": "Diseño del catálogo…"
+  },
+  "imatges": [
+    { "src": "images/NY/2.jpg", "size": "50" }
+  ]
 }
 ```
 
-## Funcionalidades
+- `size` es un porcentaje 1–100 que se traduce a `--scale` dentro de la `media-frame`.
+- Las claves de texto aceptan objeto por idioma o string plano (fallback automático a `cat`).
 
-### Filtros
+## Detalles de implementación
 
-- **Idioma**: CAT (por defecto) / ES
-  - Cambia el color de fondo del sidebar
-  - Cambia el contenido de los proyectos
-  - Cambia el menú de navegación
+- **Colores dinámicos**: `prepareProjectColorData()` convierte hex → RGB, calcula tono y mezcla con negro/blanco para obtener colores de texto con buen contraste. Con `nota_de_curt = 0` se mantiene la mezcla hacia negro, que actualmente funciona bien con la paleta.
+- **Imágenes**: `makeMediaFrame()` crea un contenedor con `aspect-ratio`. El ancho máximo es el tamaño natural de la imagen; por eso las imágenes pequeñas (como `images/monicaPlanes/1.jpeg`) quedan centradas sin escalar para evitar pixelado. Si se quisiera forzar a pantalla completa, se puede romper esa limitación y aceptar la pérdida de nitidez (ver notas en `todo.md`).
+- **Panel About**: contenido se genera desde `data/about.json`. El botón del sidebar siempre se ve en negro (override directo en CSS) para mantener referencia estable.
+- **Accesibilidad básica**: el botón activo de proyecto usa `aria-current="true"`, el panel About alterna `aria-hidden`/`aria-expanded`, y `Esc` cierra el overlay.
 
-- **Autor**: miranda perez hita / equipa grafica / 6508
-  - Por defecto ninguno activo (muestra todos)
-  - Click activa/desactiva con negrita
-  - Filtra proyectos según autor
+## Desarrollo y pruebas
 
-### Navegación
-
-- Menú inferior en el sidebar con anchor links
-- Scroll suave a cada proyecto
-- Se actualiza dinámicamente según filtros activos
-
-## Responsive
-
-- **Desktop (>1000px)**: Sidebar 1/3, Contenido 2/3
-- **Tablet (600-1000px)**: Sidebar 1/4, Contenido 3/4
-- **Mobile (<600px)**: Pendiente de implementar
-
-## Cómo usar
-
-1. Coloca tus imágenes en `/images/`
-2. Crea un archivo JSON por cada proyecto en `/data/`
-3. Actualiza `/data/home.json` con los proyectos visibles
-4. Abre `index.html` en un navegador
-
-## Servidor local
-
-Para probar localmente con un servidor HTTP:
+1. Clonar el repo y abrir la carpeta en tu editor.
+2. Servir con cualquier servidor estático, por ejemplo:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Luego abre: http://localhost:8080
+3. Abrir `http://localhost:8080`.
+4. Editar JSON en `data/` y recargar el navegador para ver cambios.
+
+## Mantenimiento
+
+- El listado de tareas y pendientes se consolida en `todo.md`.
+- Para cambiar el color base de la home, ajustar `home_colors` en `data/home.json`.
+- Para añadir un proyecto, duplicar un JSON existente en `data/`, actualizar rutas de imagen y referenciarlo en `home.json`.
+
+## Créditos
+
+Diseño y contenidos: miranda perez hita.  
+Implementación front-end: HTML/CSS/JS vainilla con enfoque minimalista.
