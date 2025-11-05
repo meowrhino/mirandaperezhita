@@ -6,96 +6,149 @@
   <title>Formateador — textos → array por párrafo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     :root {
-      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      font: 16px/1.6 "Times New Roman", serif;
+      color: #1c140d;
     }
 
     body {
-      margin: 24px;
-      color: #222;
+      margin: 0;
+      min-height: 100dvh;
+      background: #e6d8c3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1.5rem;
     }
 
-    .wrap {
-      max-width: 900px;
-      margin: 0 auto;
-      display: grid;
-      gap: 16px;
+    main {
+      width: min(720px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
     }
 
+    .panel,
     textarea,
-    pre,
-    code,
-    input[type="text"] {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    .out,
+    .actions button {
+      border-radius: 0;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.88);
+      padding: 1.5rem 1.25rem;
+      box-shadow: 0 10px 26px rgba(61, 49, 33, 0.08);
     }
 
     textarea {
       width: 100%;
-      min-height: 220px;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
+      min-height: 240px;
+      padding: 1.1rem;
+      border: 1px solid rgba(28, 20, 13, 0.18);
+      background: rgba(255, 255, 255, 0.96);
+      resize: vertical;
+      outline: none;
     }
 
-    .row {
+    .lang-switch {
+      display: inline-flex;
+      border: 1px solid rgba(28, 20, 13, 0.2);
+      background: rgba(255, 255, 255, 0.9);
+      padding: 0.25rem;
+      gap: 4px;
+      margin-bottom: 1rem;
+    }
+
+    .lang-option {
+      border: none;
+      background: transparent;
+      color: rgba(28, 20, 13, 0.75);
+      padding: 0.45rem 1.15rem;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .lang-option:hover,
+    .lang-option:focus-visible {
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .lang-option.active {
+      background: rgba(28, 20, 13, 0.88);
+      color: #f3ede4;
+    }
+
+    .actions {
       display: flex;
-      gap: 8px;
-      align-items: center;
       flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem 0;
     }
 
     button {
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
+      font-family: "Times New Roman", serif;
+      padding: 0.55rem 1.15rem;
+      border: 1px solid rgba(28, 20, 13, 0.16);
       cursor: pointer;
-      background: #fff;
-    }
-
-    button+button {
-      margin-left: 4px;
+      background: rgba(255, 255, 255, 0.92);
+      color: inherit;
+      letter-spacing: 0.01em;
+      transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
     }
 
     .out {
-      min-height: 160px;
+      min-height: 180px;
       white-space: pre;
-      background: #0f172a;
-      color: #e5e7eb;
-      padding: 12px;
-      border-radius: 10px;
+      background: rgba(32, 24, 12, 0.94);
+      color: #fdf7ed;
+      padding: 1.4rem;
       overflow: auto;
-    }
-
-    small.hint {
-      color: #666;
+      border: 1px solid rgba(17, 12, 6, 0.4);
+      font-size: 1rem;
+      line-height: 1.7;
     }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
+  <main>
+    <section class="panel input-panel">
+      <div class="lang-switch" role="group" aria-label="Seleccionar idioma">
+        <button type="button" class="lang-option active" data-lang="cat">CAT</button>
+        <button type="button" class="lang-option" data-lang="es">ES</button>
+      </div>
 
-    <textarea id="entrada"
-      placeholder="Pega o escribe el texto. Un párrafo nuevo se separa con una línea en blanco (doble salto). Dentro de un párrafo, 1×\n es salto de línea visual."></textarea>
+      <textarea id="entrada"
+        placeholder="Pega o escribe el texto. Un párrafo nuevo se separa con una línea en blanco (doble salto). Dentro de un párrafo, 1×\n es salto de línea visual."></textarea>
 
-    <div class="row">
-      <button id="copiar">Copiar</button>
-      <button id="limpiar">Limpiar</button>
-      <button id="btnBold" title="Negrita (**)">B</button>
-      <button id="btnItalic" title="Cursiva (*)">I</button>
-      <button id="btnUnderline" title="Subrayado (__)">U</button>
-      <button id="btnLink" title="Enlace [texto](url)">Link</button>
-      <small class="hint">El resultado aparece abajo y se actualiza automáticamente.</small>
-    </div>
+      <div class="actions">
+        <button id="copiar">Copiar</button>
+        <button id="limpiar">Limpiar</button>
+        <button id="btnBold" title="Negrita (**)">B</button>
+        <button id="btnItalic" title="Cursiva (*)">I</button>
+        <button id="btnUnderline" title="Subrayado (__)">U</button>
+        <button id="btnLink" title="Enlace [texto](url)">Link</button>
+      </div>
+    </section>
 
-    <div class="out" id="salida" aria-label="Salida JSON" tabindex="0"></div>
-  </div>
+    <section class="panel output-panel">
+      <div class="out" id="salida" aria-label="Salida JSON" tabindex="0"></div>
+    </section>
+  </main>
 
   <script>
     const entrada = document.getElementById('entrada');
     const salida = document.getElementById('salida');
     const btnCopiar = document.getElementById('copiar');
     const btnLimpiar = document.getElementById('limpiar');
+    const langButtons = Array.from(document.querySelectorAll('.lang-option'));
+    let activeLang = langButtons.find((btn) => btn.classList.contains('active'))?.dataset.lang || 'cat';
 
     function normalizarSaltos(s) {
       return s.replace(/\r\n?/g, '\n')
@@ -108,14 +161,19 @@
     function generar() {
       let text = entrada.value || '';
       text = normalizarSaltos(text);
-      if (!text.trim()) { salida.textContent = ''; return; }
+      if (!text.trim()) {
+        salida.textContent = `"${activeLang}": []`;
+        return;
+      }
 
       const parrafos = text.trim().split(/\n\s*\n+/).map(p =>
         p.replace(/[ \t]+\n/g, '\n').replace(/\n{2,}/g, '\n').trim()
       ).filter(Boolean);
 
       const cuerpo = parrafos.map(p => '  ' + jsonString(p)).join(',\n');
-      const json = `"textos": [\n${cuerpo}\n]`;
+      const json = parrafos.length
+        ? `"${activeLang}": [\n${cuerpo}\n]`
+        : `"${activeLang}": []`;
       salida.textContent = json;
     }
 
@@ -137,8 +195,17 @@
 
     btnLimpiar.addEventListener('click', () => {
       entrada.value = '';
-      salida.textContent = '';
       entrada.focus();
+      generar();
+    });
+
+    langButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!btn.dataset.lang || btn.dataset.lang === activeLang) return;
+        activeLang = btn.dataset.lang;
+        langButtons.forEach((b) => b.classList.toggle('active', b === btn));
+        generar();
+      });
     });
 
     function wrapSelection(before, after) {

@@ -67,8 +67,12 @@ mirandaperezhita/
   "client": { "cat": "Jaume Cloret", "es": "Jaume Cloret" },
   "data": "2024",
   "text": {
-    "cat": "Disseny del catàleg…",
-    "es": "Diseño del catálogo…"
+    "cat": [
+      "Disseny del catàleg…"
+    ],
+    "es": [
+      "Diseño del catálogo…"
+    ]
   },
   "imatges": [
     { "src": "images/NY/2.jpg", "size": "50" }
@@ -77,7 +81,7 @@ mirandaperezhita/
 ```
 
 - `size` es un porcentaje 1–100 que se traduce a `--scale` dentro de la `media-frame`.
-- Las claves de texto aceptan objeto por idioma o string plano (fallback automático a `cat`).
+- Las claves de texto aceptan objeto por idioma: cada idioma puede ser string único o array de párrafos. El formateador (`formateador.html`) genera el array listo para pegar.
 
 ## Detalles de implementación
 

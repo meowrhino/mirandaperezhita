@@ -1,29 +1,27 @@
 {
     "slug": "blanca-arias",
-
     "primera_imatge": {
         "src": "images/blancaArias/1.jpg",
         "size": "100"
     },
     "titol": {
+        "cat": "només si fa olor de terra",
+        "es": "només si fa olor de terra",
+        "link": ""
+    },
+    "client": {
         "cat": "Blanca Arias",
         "es": "Blanca Arias",
         "link": ""
     },
-    "client": {
-        "cat": "Client Exemple",
-        "es": "Cliente Ejemplo",
-        "link": ""
-    },
-    "lloc": {
-        "cat": "Barcelona",
-        "es": "Barcelona",
-        "link": ""
-    },
     "data": "2024",
     "text": {
-        "cat": "Projecte de disseny per a Blanca Arias.",
-        "es": "Proyecto de diseño para Blanca Arias."
+        "cat": [
+            "Disseny del catàleg de «[Només si fa olor de terra](https://www.lapanera.cat/ca/programacio/exposicions/nomes-si-fa-olor-de-terra)», exposició a cura de blanca arias al Centre d’Art La Panera. Amb textos de l’Elena Castro i edu r. pineda. Coordinada per Anna Roigé."
+        ],
+        "es": [
+            "Proyecto de diseño para Blanca Arias."
+        ]
     },
     "imatges": [
         {

@@ -25,6 +25,7 @@ function updateStickyOffset() {
   if (!sidebar) return;
   const h = sidebar.offsetHeight || 0;
   document.documentElement.style.setProperty('--sidebar-h', h + 'px');
+  document.documentElement.style.setProperty('--sidebar-height', h + 'px');
 }
 
 function debounce(fn, delay = 150) {
@@ -203,14 +204,65 @@ function formatInline(s = '') {
 // Devuelve el texto en el idioma activo con fallback a catalán y primer valor disponible
 function getLocalizedText(source, lang = activeLanguage) {
   if (!source) return '';
+  if (Array.isArray(source)) {
+    return source
+      .map((item) => (typeof item === 'string' ? item.trim() : String(item || '').trim()))
+      .filter(Boolean)
+      .join(' ');
+  }
   if (typeof source === 'string') return source;
   if (typeof source === 'object') {
-    if (typeof source[lang] === 'string') return source[lang];
-    if (typeof source.cat === 'string') return source.cat;
-    const first = Object.values(source).find((value) => typeof value === 'string' && value.trim());
-    return first || '';
+    const candidates = [
+      source[lang],
+      source.cat,
+      ...Object.values(source)
+    ];
+    for (const candidate of candidates) {
+      if (!candidate) continue;
+      if (typeof candidate === 'string' && candidate.trim()) return candidate;
+      if (Array.isArray(candidate)) {
+        const joined = candidate
+          .map((item) => (typeof item === 'string' ? item.trim() : String(item || '').trim()))
+          .filter(Boolean)
+          .join(' ');
+        if (joined) return joined;
+      }
+    }
   }
   return '';
+}
+
+function getLocalizedParagraphs(source, lang = activeLanguage) {
+  if (!source) return [];
+  const coerce = (value) => {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => (typeof item === 'string' ? item.trim() : String(item || '').trim()))
+        .filter(Boolean);
+    }
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed ? [trimmed] : [];
+    }
+    return [];
+  };
+
+  if (Array.isArray(source) || typeof source === 'string') {
+    return coerce(source);
+  }
+
+  if (typeof source === 'object') {
+    const candidates = [
+      source[lang],
+      source.cat,
+      ...Object.values(source)
+    ];
+    for (const candidate of candidates) {
+      const result = coerce(candidate);
+      if (result.length) return result;
+    }
+  }
+  return [];
 }
 
 function prepareProjectColorData() {
@@ -311,81 +363,92 @@ function getProjectMeta(slug) {
 
 function applyNavColorForSlug(slug) {
   const meta = getProjectMeta(slug);
-  const navColor = meta?.color_texto || DEFAULT_TEXT_COLOR;
+  if (!meta) {
+    document.documentElement.style.setProperty('--active-project-text-color', DEFAULT_TEXT_COLOR);
+    return;
+  }
+  const navColor = meta.color_texto || DEFAULT_TEXT_COLOR;
   document.documentElement.style.setProperty('--active-project-text-color', navColor);
 }
 
-// Obtener proyectos visibles del home.json
+function updateSidebarColor() {
+  const colors = homeData?.home_colors || {};
+  const fallback = typeof homeData?.color_fons === 'string' ? homeData.color_fons : '#ffffff';
+  const bgColor = colors[activeLanguage] ?? colors.cat ?? fallback;
+  document.documentElement.style.setProperty('--home-bg-color', bgColor);
+  if (sidebar) {
+    sidebar.style.backgroundColor = bgColor;
+  }
+  if (document.body) {
+    document.body.style.backgroundColor = bgColor;
+  }
+}
+
 function getVisibleProjectsFromHome() {
+  if (!Array.isArray(homeData?.projectes_visibles)) return [];
   return homeData.projectes_visibles.filter(
-    (p) => p.visible === true || p.visible === "si"
+    (project) => project && (project.visible === true || project.visible === 'si')
   );
 }
 
-// Cargar todos los proyectos
-async function loadProjects(visibleProjects) {
-  const promises = visibleProjects.map(async (project) => {
+async function loadProjects(projects) {
+  const pending = projects.filter((project) => project && !projectsData[project.slug]);
+  if (!pending.length) return;
+
+  await Promise.all(pending.map(async (project) => {
     try {
       const response = await fetch(`data/${project.slug}.json`);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const data = await response.json();
-      projectsData[project.slug] = data;
-    } catch (err) {
-      console.warn('No se pudo cargar', project.slug, err);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      projectsData[project.slug] = await response.json();
+    } catch (error) {
+      console.error(`Error cargando proyecto ${project.slug}:`, error);
     }
-  });
-
-  await Promise.all(promises);
+  }));
 }
 
-// Utilidad: crea un contenedor "hueco" (media-frame) con una imagen centrada y escalada 1–100
-function makeMediaFrame(src, altText, scalePercent = 100) {
+function makeMediaFrame(src, alt = '', scale = 100) {
   const frame = document.createElement('div');
   frame.className = 'media-frame';
 
   const img = document.createElement('img');
   img.className = 'media-image';
   img.src = src;
-  img.alt = altText || '';
+  img.alt = alt;
   img.loading = 'lazy';
-  img.onerror = () => {
-    img.src = 'images/reference/pasted_file_KN2lG4_MacBookAir-1.png';
-  };
+  const FALLBACK_SRC = 'images/reference/pasted_file_KN2lG4_MacBookAir-1.png';
 
-  // Normalizar y aplicar escala (1–100)
-  let s = parseInt(scalePercent, 10);
-  if (isNaN(s)) s = 100; // por defecto 100
-  s = Math.max(1, Math.min(100, s));
-  img.style.setProperty('--scale', (s / 100).toString());
+  const scaleValue = Math.max(1, Math.min(100, parseInt(scale, 10) || 100)) / 100;
+  img.style.setProperty('--scale', scaleValue.toString());
 
-  // Al cargar, fijar variables del hueco desde el tamaño natural
-  img.addEventListener('load', () => {
+  const setVars = () => {
     const w = img.naturalWidth || 1;
     const h = img.naturalHeight || 1;
     frame.style.setProperty('--natural-w', w + 'px');
     frame.style.setProperty('--ratio', `${w} / ${h}`);
+  };
+
+  if (img.complete && img.naturalWidth) {
+    setVars();
+  } else {
+    img.addEventListener('load', setVars, { once: true });
+  }
+
+  img.addEventListener('error', () => {
+    if (img.dataset.fallbackApplied === 'true') return;
+    img.dataset.fallbackApplied = 'true';
+    img.src = FALLBACK_SRC;
   });
 
   frame.appendChild(img);
   return frame;
 }
 
-// Actualizar color de fondo del sidebar
-function updateSidebarColor() {
-  const colors = homeData?.home_colors || {};
-  const color = colors[activeLanguage] ?? colors.cat ?? '#ffffff';
-  document.documentElement.style.setProperty('--home-bg-color', color);
-  document.body.style.backgroundColor = color;
-  if (sidebar) sidebar.style.backgroundColor = color; // sincroniza el fondo del sidebar en móvil y desktop
-}
-
-// Renderizar menú de navegación
+// Renderizar menú de proyectos
 function renderProjectMenu() {
-  const visibleProjects = getVisibleProjects();
-
+  if (!projectMenu) return;
   projectMenu.innerHTML = "";
+
+  const visibleProjects = getVisibleProjectsFromHome();
 
   visibleProjects.forEach((project) => {
     const projectData = projectsData[project.slug];
@@ -394,10 +457,9 @@ function renderProjectMenu() {
     const button = document.createElement("button");
     button.className = "project-link";
     button.dataset.slug = project.slug;
-    if (project.color_texto) {
-      button.dataset.textColor = project.color_texto;
-    } else {
-      delete button.dataset.textColor;
+    if (project.slug === activeProjectSlug) {
+      button.classList.add("active");
+      button.setAttribute("aria-current", "true");
     }
     const title = getLocalizedText(projectData.titol);
     button.textContent = title || project.slug;
@@ -494,10 +556,11 @@ function renderProjects() {
 
     // Resto de descripción: textos[] (array de párrafos). Fallback a text[lang]
     const hasTextos = Array.isArray(projectData.textos) && projectData.textos.length;
-    const fallbackText = projectData.text ? getLocalizedText(projectData.text) : '';
-    const paragraphs = hasTextos
-      ? projectData.textos
-      : (fallbackText ? [fallbackText] : []);
+    const fallbackParagraphs = getLocalizedParagraphs(projectData.text);
+    const paragraphs = (hasTextos ? projectData.textos : fallbackParagraphs)
+      .map((p) => (typeof p === 'string' ? p : String(p || '')))
+      .map((p) => p.trim())
+      .filter(Boolean);
 
     paragraphs.forEach((p) => {
       const para = document.createElement("p");
@@ -606,10 +669,13 @@ function setActiveProject(slug, options = {}) {
   if (activeButton && (forceScroll || (scrollIntoView && slugChanged))) {
     const shouldScrollMenu = projectMenu.scrollWidth > projectMenu.clientWidth;
     if (shouldScrollMenu) {
-      activeButton.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "center"
+      // Mejorar el scroll en móvil con un pequeño delay
+      requestAnimationFrame(() => {
+        activeButton.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center"
+        });
       });
     }
   }
@@ -785,6 +851,29 @@ function setupEventListeners() {
 
     document.addEventListener('keydown', handleEscClose);
   }
+
+  // Prevenir comportamiento extraño en iOS durante scroll horizontal del menú
+  if (projectMenu) {
+    let isScrolling = false;
+    let scrollTimeout;
+
+    projectMenu.addEventListener('scroll', () => {
+      isScrolling = true;
+      clearTimeout(scrollTimeout);
+      
+      // Marcar que terminó el scroll después de 150ms
+      scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+      }, 150);
+    }, PASSIVE_SCROLL_OPTIONS);
+
+    // Prevenir que el scroll del menú afecte al scroll del documento
+    projectMenu.addEventListener('touchstart', (e) => {
+      if (projectMenu.scrollWidth > projectMenu.clientWidth) {
+        e.stopPropagation();
+      }
+    }, PASSIVE_SCROLL_OPTIONS);
+  }
 }
 
 // Actualizar contenido de proyectos (sin recrear el DOM completo)
@@ -832,10 +921,11 @@ function updateProjectsContent() {
       info.appendChild(firstP);
 
       const hasTextos = Array.isArray(projectData.textos) && projectData.textos.length;
-      const fallbackText = projectData.text ? getLocalizedText(projectData.text) : '';
-      const paragraphs = hasTextos
-        ? projectData.textos
-        : (fallbackText ? [fallbackText] : []);
+      const fallbackParagraphs = getLocalizedParagraphs(projectData.text);
+      const paragraphs = (hasTextos ? projectData.textos : fallbackParagraphs)
+        .map((p) => (typeof p === 'string' ? p : String(p || '')))
+        .map((p) => p.trim())
+        .filter(Boolean);
 
       paragraphs.forEach((p) => {
         const para = document.createElement("p");

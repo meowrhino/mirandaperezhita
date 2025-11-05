@@ -15,15 +15,14 @@
         "es": "Cliente Ejemplo",
         "link": ""
     },
-    "lloc": {
-        "cat": "Barcelona",
-        "es": "Barcelona",
-        "link": ""
-    },
     "data": "2024",
     "text": {
-        "cat": "Projecte de disseny per a Monica Planes.",
-        "es": "Proyecto de diseño para Monica Planes."
+        "cat": [
+            "Projecte de disseny per a Monica Planes."
+        ],
+        "es": [
+            "Proyecto de diseño para Monica Planes."
+        ]
     },
     "imatges": [
         {

@@ -9,26 +9,17 @@
         {
             "slug": "new-ywork",
             "color": "#748873",
-            "visible": true,
-            "autor": "miranda perez hita"
-        },
-        {
-            "slug": "new-ywork_2",
-            "color": "#98A1BC",
-            "visible": true,
-            "autor": "equipa grafica"
+            "visible": true
         },
         {
             "slug": "monica-planes",
             "color": "#E8988A",
-            "visible": true,
-            "autor": "6508"
+            "visible": true
         },
         {
             "slug": "blanca-arias",
             "color": "#7B4019",
-            "visible": true,
-            "autor": "miranda perez hita"
+            "visible": true
         }
     ]
 }
