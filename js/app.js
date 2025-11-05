@@ -96,7 +96,6 @@ async function init() {
 
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleLayoutChange);
-      window.visualViewport.addEventListener('scroll', handleLayoutChange);
     }
 
     // Configurar event listeners
