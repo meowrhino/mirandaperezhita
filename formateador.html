@@ -55,33 +55,13 @@
       outline: none;
     }
 
-    .lang-switch {
-      display: inline-flex;
-      border: 1px solid rgba(28, 20, 13, 0.2);
-      background: rgba(255, 255, 255, 0.9);
-      padding: 0.25rem;
-      gap: 4px;
-      margin-bottom: 1rem;
+    textarea + textarea {
+      margin-top: 1.25rem;
     }
 
-    .lang-option {
-      border: none;
-      background: transparent;
-      color: rgba(28, 20, 13, 0.75);
-      padding: 0.45rem 1.15rem;
-      font-weight: 400;
-      cursor: pointer;
-      transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
-    }
-
-    .lang-option:hover,
-    .lang-option:focus-visible {
-      background: rgba(255, 255, 255, 0.8);
-    }
-
-    .lang-option.active {
-      background: rgba(28, 20, 13, 0.88);
-      color: #f3ede4;
+    textarea::placeholder {
+      color: rgba(28, 20, 13, 0.5);
+      letter-spacing: 0.08em;
     }
 
     .actions {
@@ -119,13 +99,11 @@
 <body>
   <main>
     <section class="panel input-panel">
-      <div class="lang-switch" role="group" aria-label="Seleccionar idioma">
-        <button type="button" class="lang-option active" data-lang="cat">CAT</button>
-        <button type="button" class="lang-option" data-lang="es">ES</button>
-      </div>
+      <textarea data-lang="cat"
+        placeholder="CAT"></textarea>
 
-      <textarea id="entrada"
-        placeholder="Pega o escribe el texto. Un párrafo nuevo se separa con una línea en blanco (doble salto). Dentro de un párrafo, 1×\n es salto de línea visual."></textarea>
+      <textarea data-lang="es"
+        placeholder="ES"></textarea>
 
       <div class="actions">
         <button id="copiar">Copiar</button>
@@ -143,38 +121,60 @@
   </main>
 
   <script>
-    const entrada = document.getElementById('entrada');
     const salida = document.getElementById('salida');
     const btnCopiar = document.getElementById('copiar');
     const btnLimpiar = document.getElementById('limpiar');
-    const langButtons = Array.from(document.querySelectorAll('.lang-option'));
-    let activeLang = langButtons.find((btn) => btn.classList.contains('active'))?.dataset.lang || 'cat';
+    const btnBold = document.getElementById('btnBold');
+    const btnItalic = document.getElementById('btnItalic');
+    const btnUnderline = document.getElementById('btnUnderline');
+    const btnLinkFmt = document.getElementById('btnLink');
+    const textareas = Array.from(document.querySelectorAll('textarea[data-lang]'));
+    const LANG_ORDER = textareas.map((el) => el.dataset.lang);
 
-    function normalizarSaltos(s) {
+    function normalizarSaltos(s = '') {
       return s.replace(/\r\n?/g, '\n')
         .replace(/[ \t]+\n/g, '\n')
         .replace(/\n{3,}/g, '\n\n');
     }
 
-    function jsonString(v) { return JSON.stringify(v); }
+    function jsonString(v) {
+      return JSON.stringify(v);
+    }
 
-    function generar() {
-      let text = entrada.value || '';
-      text = normalizarSaltos(text);
-      if (!text.trim()) {
-        salida.textContent = `"${activeLang}": []`;
-        return;
-      }
+    function obtenerTextareaActiva() {
+      const active = document.activeElement;
+      return textareas.includes(active) ? active : textareas[0];
+    }
 
-      const parrafos = text.trim().split(/\n\s*\n+/).map(p =>
+    function obtenerParrafos(valor) {
+      const text = normalizarSaltos(valor || '');
+      if (!text.trim()) return [];
+      return text.trim().split(/\n\s*\n+/).map((p) =>
         p.replace(/[ \t]+\n/g, '\n').replace(/\n{2,}/g, '\n').trim()
       ).filter(Boolean);
+    }
 
-      const cuerpo = parrafos.map(p => '  ' + jsonString(p)).join(',\n');
-      const json = parrafos.length
-        ? `"${activeLang}": [\n${cuerpo}\n]`
-        : `"${activeLang}": []`;
-      salida.textContent = json;
+    function formatearArray(arr, indentLevel) {
+      const indent = '    '.repeat(indentLevel);
+      const innerIndent = '    '.repeat(indentLevel + 1);
+      if (!arr.length) return '[]';
+      const lines = arr.map((item) => `${innerIndent}${jsonString(item)}`);
+      return `[\n${lines.join(',\n')}\n${indent}]`;
+    }
+
+    function generar() {
+      const result = {};
+      LANG_ORDER.forEach((lang) => {
+        const field = textareas.find((el) => el.dataset.lang === lang);
+        result[lang] = obtenerParrafos(field ? field.value : '');
+      });
+
+      const entries = LANG_ORDER.map((lang) => {
+        const arrayStr = formatearArray(result[lang], 1);
+        return `    "${lang}": ${arrayStr}`;
+      });
+
+      salida.textContent = `"text": {\n${entries.join(',\n')}\n}`;
     }
 
     btnCopiar.addEventListener('click', async () => {
@@ -194,40 +194,34 @@
     });
 
     btnLimpiar.addEventListener('click', () => {
-      entrada.value = '';
-      entrada.focus();
+      textareas.forEach((field) => { field.value = ''; });
+      const first = textareas[0];
+      if (first) first.focus();
       generar();
     });
 
-    langButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        if (!btn.dataset.lang || btn.dataset.lang === activeLang) return;
-        activeLang = btn.dataset.lang;
-        langButtons.forEach((b) => b.classList.toggle('active', b === btn));
-        generar();
-      });
-    });
-
     function wrapSelection(before, after) {
-      entrada.focus();
-      const start = entrada.selectionStart;
-      const end = entrada.selectionEnd;
-      const value = entrada.value;
+      const field = obtenerTextareaActiva();
+      if (!field) return;
+      const start = field.selectionStart;
+      const end = field.selectionEnd;
+      const value = field.value;
       const sel = value.slice(start, end) || '';
       const replaced = value.slice(0, start) + before + sel + after + value.slice(end);
-      entrada.value = replaced;
+      field.value = replaced;
       const newStart = start + before.length;
       const newEnd = newStart + sel.length;
-      entrada.setSelectionRange(newStart, newEnd);
+      field.setSelectionRange(newStart, newEnd);
       generar();
     }
 
     function addLink() {
-      entrada.focus();
-      const start = entrada.selectionStart;
-      const end = entrada.selectionEnd;
-      let sel = entrada.value.slice(start, end).trim();
-      const text = sel || prompt('Texto del enlace:', '');
+      const field = obtenerTextareaActiva();
+      if (!field) return;
+      const start = field.selectionStart;
+      const end = field.selectionEnd;
+      const current = field.value.slice(start, end).trim();
+      const text = current || prompt('Texto del enlace:', '');
       if (text === null) return;
       let url = prompt('URL (https:// o mailto:):', 'https://');
       if (url === null) return;
@@ -236,25 +230,20 @@
         alert('La URL debe empezar por https:// o mailto:');
         return;
       }
-      const value = entrada.value;
+      const value = field.value;
       const replaced = value.slice(0, start) + `[${text}](${url})` + value.slice(end);
-      entrada.value = replaced;
+      field.value = replaced;
       const pos = start + (`[${text}](${url})`).length;
-      entrada.setSelectionRange(pos, pos);
+      field.setSelectionRange(pos, pos);
       generar();
     }
-
-    const btnBold = document.getElementById('btnBold');
-    const btnItalic = document.getElementById('btnItalic');
-    const btnUnderline = document.getElementById('btnUnderline');
-    const btnLinkFmt = document.getElementById('btnLink');
 
     btnBold.addEventListener('click', () => wrapSelection('**', '**'));
     btnItalic.addEventListener('click', () => wrapSelection('*', '*'));
     btnUnderline.addEventListener('click', () => wrapSelection('__', '__'));
     btnLinkFmt.addEventListener('click', addLink);
 
-    entrada.addEventListener('input', generar);
+    textareas.forEach((field) => field.addEventListener('input', generar));
     generar();
   </script>
 </body>
