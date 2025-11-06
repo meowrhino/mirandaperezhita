@@ -152,7 +152,7 @@ body.about-open #projects-container {
   height: 100vh;
   overflow-y: auto;
   scroll-behavior: smooth;
-  padding-bottom: calc(5rem + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
   /* Optimización para scroll en iOS */
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: none;
@@ -272,8 +272,8 @@ body.about-open #projects-container {
 
   .projects-wrapper {
     gap: 5rem;
-    margin-bottom: 5rem;
-    margin-top: 5rem;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
   }
 
   .project-section {
