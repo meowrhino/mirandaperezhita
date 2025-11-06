@@ -12,6 +12,8 @@ let homeProjectsBySlug = new Map();
 let sidebarHeightObserver = null;
 let lastSidebarHeight = 0;
 let lastFocusedElement = null;
+let aboutCloseTimerId = null;
+let aboutTransitionHandler = null;
 
 const PASSIVE_SCROLL_OPTIONS = { passive: true };
 const DEFAULT_TEXT_COLOR = '#000000';
@@ -153,12 +155,19 @@ async function loadAbout() {
 // Renderizar contenido del About desde aboutData
 function renderAbout() {
   if (!aboutPanel) return;
+  const wasOpen = aboutPanel.classList.contains('open');
   aboutPanel.innerHTML = '';
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'about-close';
   closeBtn.type = 'button';
-  closeBtn.setAttribute('aria-label', 'Tancar');
+  const closeLabels = {
+    cat: 'Tancar',
+    es: 'Cerrar'
+  };
+  const closeLabel = closeLabels[activeLanguage] || closeLabels.cat;
+  closeBtn.setAttribute('aria-label', closeLabel);
+  closeBtn.setAttribute('title', closeLabel);
   closeBtn.innerHTML = '&times;';
   closeBtn.addEventListener('click', () => {
     setAboutOpen(false, { focusToggle: true });
@@ -175,10 +184,10 @@ function renderAbout() {
   h2.textContent = 'miranda perez hita';
   body.appendChild(h2);
 
-  const textos = Array.isArray(aboutData?.texto) ? aboutData.texto : [];
-  textos.forEach(t => {
+  const paragraphs = getLocalizedParagraphs(aboutData?.text, activeLanguage);
+  paragraphs.forEach((text) => {
     const p = document.createElement('p');
-    p.innerHTML = formatInline(t); // soporta **, *, __, [texto](url)
+    p.innerHTML = formatInline(text); // soporta **, *, __, [texto](url)
     body.appendChild(p);
   });
 
@@ -196,7 +205,7 @@ function renderAbout() {
   footer.appendChild(footerLink);
 
   aboutPanel.appendChild(footer);
-  setAboutOpen(aboutPanel.classList.contains('open'));
+  setAboutOpen(wasOpen);
 }
 
 // OPTIMIZADO: Mejorar gestión del about panel con bloqueo de scroll y gestión de foco
@@ -204,12 +213,65 @@ function setAboutOpen(isOpen, options = {}) {
   if (!aboutPanel) return;
   const { focusToggle = false } = options;
   const open = Boolean(isOpen);
-  
-  aboutPanel.classList.toggle('open', open);
+  const currentlyOpen = aboutPanel.classList.contains('open');
+  const currentlyClosing = aboutPanel.classList.contains('closing');
+
+  if (aboutCloseTimerId) {
+    clearTimeout(aboutCloseTimerId);
+    aboutCloseTimerId = null;
+  }
+
+  if (aboutTransitionHandler) {
+    aboutPanel.removeEventListener('transitionend', aboutTransitionHandler);
+    aboutTransitionHandler = null;
+  }
+
+  const applyLockState = () => {
+    const isActive = aboutPanel.classList.contains('open') || aboutPanel.classList.contains('closing');
+    document.documentElement.classList.toggle('about-open', isActive);
+    if (document.body) {
+      document.body.classList.toggle('about-open', isActive);
+    }
+
+    if (!projectsContainer) return;
+    if (isActive) {
+      projectsContainer.dataset.scrollPos = projectsContainer.scrollTop;
+      projectsContainer.style.overflow = 'hidden';
+      projectsContainer.style.pointerEvents = 'none';
+      projectsContainer.style.touchAction = 'none';
+    } else {
+      projectsContainer.style.overflow = '';
+      projectsContainer.style.pointerEvents = '';
+      projectsContainer.style.touchAction = '';
+      const stored = parseInt(projectsContainer.dataset.scrollPos || '0', 10);
+      requestAnimationFrame(() => {
+        projectsContainer.scrollTop = stored;
+      });
+      delete projectsContainer.dataset.scrollPos;
+    }
+  };
+
+  const finishClosing = (shouldApply = true) => {
+    aboutPanel.classList.remove('closing');
+    if (aboutTransitionHandler) {
+      aboutPanel.removeEventListener('transitionend', aboutTransitionHandler);
+      aboutTransitionHandler = null;
+    }
+    if (aboutCloseTimerId) {
+      clearTimeout(aboutCloseTimerId);
+      aboutCloseTimerId = null;
+    }
+    if (shouldApply) {
+      applyLockState();
+    }
+  };
+
   aboutPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
   
   // Gestión de foco mejorada - Mejora #5
   if (open) {
+    finishClosing(false);
+    aboutPanel.classList.add('open');
     // Guardar el elemento con foco actual
     lastFocusedElement = document.activeElement;
     
@@ -219,6 +281,22 @@ function setAboutOpen(isOpen, options = {}) {
       if (closeBtn) closeBtn.focus();
     });
   } else {
+    if (currentlyOpen || currentlyClosing) {
+      aboutPanel.classList.add('closing');
+      aboutPanel.classList.remove('open');
+      aboutTransitionHandler = (event) => {
+        if (event.target !== aboutPanel || event.propertyName !== 'transform') return;
+        finishClosing();
+      };
+      aboutPanel.addEventListener('transitionend', aboutTransitionHandler);
+      // Fallback por si transitionend no se dispara
+      aboutCloseTimerId = window.setTimeout(() => {
+        finishClosing();
+      }, 600);
+    } else {
+      finishClosing();
+    }
+
     // Restaurar foco al elemento anterior
     if (focusToggle && aboutToggle) {
       requestAnimationFrame(() => {
@@ -234,35 +312,7 @@ function setAboutOpen(isOpen, options = {}) {
   if (aboutToggle) {
     aboutToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
-  
-  document.documentElement.classList.toggle('about-open', open);
-  if (document.body) {
-    document.body.classList.toggle('about-open', open);
-  }
-  
-  // Bloquear scroll de proyectos cuando about está abierto
-  if (projectsContainer) {
-    if (open) {
-      // Guardar posición actual
-      projectsContainer.dataset.scrollPos = projectsContainer.scrollTop;
-      
-      // Bloquear scroll
-      projectsContainer.style.overflow = 'hidden';
-      projectsContainer.style.pointerEvents = 'none';
-      projectsContainer.style.touchAction = 'none';
-    } else {
-      // Restaurar scroll
-      projectsContainer.style.overflow = '';
-      projectsContainer.style.pointerEvents = '';
-      projectsContainer.style.touchAction = '';
-      
-      // Restaurar posición después de la transición
-      requestAnimationFrame(() => {
-        const scrollPos = parseInt(projectsContainer.dataset.scrollPos || 0);
-        projectsContainer.scrollTop = scrollPos;
-      });
-    }
-  }
+  applyLockState();
 }
 
 // Conversión mínima de marcadores a HTML: **negrita**, *cursiva*, __subrayado__, [texto](url)
@@ -911,6 +961,7 @@ function setupEventListeners() {
       updateSidebarColor();
       renderProjectMenu();
       updateProjectsContent();
+      renderAbout();
       updateStickyOffset();
     });
   });
