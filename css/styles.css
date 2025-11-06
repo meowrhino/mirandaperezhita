@@ -167,7 +167,7 @@ body.about-open #projects-container {
   display: flex;
   flex-direction: column;
   gap: 5rem;
-  margin-bottom: 10rem;
+  margin-bottom: 5rem;
   margin-top: 5rem;
 }
 
@@ -270,12 +270,6 @@ body.about-open #projects-container {
     /* Optimización para iOS */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: none;
-  }
-
-  .projects-wrapper {
-    gap: 5rem;
-    margin-bottom: 1rem;
-    margin-top: 1rem;
   }
 
   .project-section {
