@@ -2,8 +2,8 @@
   --underline-offset: 0.2em;
   --active-project-text-color: #000000;
   --home-bg-color: #ffffff;
-  --sidebar-h: 0px;
-  --sidebar-height: 0px;
+  --sidebar-width: 34dvw;
+  --sidebar-mobile-height: 34dvh;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
@@ -32,9 +32,9 @@ textarea {
 }
 
 body {
-  display: flex;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
+  background-color: var(--home-bg-color);
 }
 
 html.about-open,
@@ -49,13 +49,20 @@ body.about-open #projects-container {
 
 /* Columna izquierda */
 #sidebar {
-  width: 33.333%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  max-width: var(--sidebar-width);
+  height: 100dvh;
+  z-index: 50;
   padding: calc(2rem + var(--safe-top)) calc(2rem + var(--safe-right)) calc(2rem + var(--safe-bottom)) calc(2rem + var(--safe-left));
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 2rem;
   transition: background-color 0.3s ease;
-  overflow-y: auto;
+  overflow: hidden;
   color: var(--active-project-text-color);
 }
 
@@ -120,6 +127,9 @@ body.about-open #projects-container {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin-top: auto;
+  overflow-y: auto;
+  padding-bottom: 0.5rem;
 }
 
 .project-link {
@@ -145,8 +155,11 @@ body.about-open #projects-container {
 /* Columna derecha */
 #projects-container {
   position: relative;
-  width: 66.666%;
-  height: 100vh;
+  margin-left: var(--sidebar-width);
+  width: calc(100dvw - var(--sidebar-width));
+  min-width: 0;
+  min-height: 100dvh;
+  max-height: 100dvh;
   overflow-y: auto;
   scroll-behavior: smooth;
   padding-bottom: var(--safe-bottom);
@@ -204,50 +217,41 @@ body.about-open #projects-container {
 
 /* Responsive: 600-1000px */
 @media (min-width: 600px) and (max-width: 1000px) {
-  #sidebar {
-    width: 25%;
-  }
-
-  #projects-container {
-    width: 75%;
+  :root {
+    --sidebar-width: 25dvw;
   }
 }
 
 /* Mobile: <600px */
 @media (max-width: 599px) {
   body {
-    display: block;
     min-height: 100dvh;
-    overflow: visible; /* allow document scroll */
+    overflow: hidden;
   }
 
   #sidebar {
     position: fixed;
+    z-index: 40;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 40;
     width: 100%;
-    min-height: auto;
+    min-height: var(--sidebar-mobile-height);
+    height: var(--sidebar-mobile-height);
     padding-top: calc(1.5rem + var(--safe-top));
     padding-right: calc(1.5rem + var(--safe-right));
     padding-bottom: calc(1.5rem + var(--safe-bottom));
     padding-left: calc(1.5rem + var(--safe-left));
-    overflow: visible;
-    transform: translate3d(0, 0, 0);
-    -webkit-transform: translate3d(0, 0, 0);
-    will-change: transform;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
     background-color: var(--home-bg-color);
   }
 
   #projects-container {
+    margin-left: 0;
+    margin-top: var(--sidebar-mobile-height);
     width: 100%;
-    height: auto; /* remove fixed viewport height */
-    min-height: 0;
-    overflow: visible; /* let the page (document) scroll */
-    padding-top: var(--sidebar-h, 0px);
+    min-height: calc(100dvh - var(--sidebar-mobile-height));
+    max-height: calc(100dvh - var(--sidebar-mobile-height));
+    overflow-y: auto;
   }
 
   .projects-wrapper {
@@ -258,10 +262,11 @@ body.about-open #projects-container {
 
   .project-section {
     min-height: auto;
-    scroll-margin-top: var(--sidebar-h, 0px);
+    scroll-margin-top: var(--sidebar-mobile-height);
   }
 
   .sidebar-bottom {
+    flex: 0 0 auto;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -295,6 +300,11 @@ body.about-open #projects-container {
     /* Mejorar el tap en iOS */
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+  }
+
+  .about-panel {
+    left: 0;
+    top: var(--sidebar-mobile-height);
   }
 }
 
@@ -348,7 +358,7 @@ body.about-open #projects-container {
   top: 0;
   right: 0;
   bottom: 0;
-  left: 0;
+  left: var(--sidebar-width);
   background: var(--home-bg-color, #fff);
   /*color: var(--active-project-text-color);*/
   color: #000000;
