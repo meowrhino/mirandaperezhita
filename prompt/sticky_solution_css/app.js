@@ -9,9 +9,6 @@ let scrollSyncRoot = null;
 let scrollSyncFrame = null;
 let scrollSyncTargets = [];
 let homeProjectsBySlug = new Map();
-let sidebarHeightObserver = null;
-let lastSidebarHeight = 0;
-let lastFocusedElement = null;
 
 const PASSIVE_SCROLL_OPTIONS = { passive: true };
 const DEFAULT_TEXT_COLOR = '#000000';
@@ -24,41 +21,11 @@ const langButtons = document.querySelectorAll(".lang-btn");
 const aboutToggle = document.getElementById("about-toggle");
 const aboutPanel = document.getElementById("about-panel");
 
-// OPTIMIZADO: Calcular altura del sidebar solo cuando es necesario (no en scroll)
-function setupSidebarHeight() {
-  // Limpiar observer anterior si existe
-  if (sidebarHeightObserver) {
-    sidebarHeightObserver.disconnect();
-  }
-  
-  // Solo en móvil
-  if (window.innerWidth >= 600) {
-    document.documentElement.style.removeProperty('--sidebar-actual-height');
-    return;
-  }
-  
+function updateStickyOffset() {
   if (!sidebar) return;
-  
-  // Calcular altura inicial
-  const updateHeight = () => {
-    const height = sidebar.offsetHeight;
-    // Solo actualizar si el cambio es significativo (>5px) - Mejora #4
-    if (Math.abs(height - lastSidebarHeight) > 5) {
-      lastSidebarHeight = height;
-      document.documentElement.style.setProperty('--sidebar-actual-height', `${height}px`);
-    }
-  };
-  
-  updateHeight();
-  
-  // Observar cambios futuros (ej: cambio de idioma)
-  if ('ResizeObserver' in window) {
-    sidebarHeightObserver = new ResizeObserver(debounce(() => {
-      updateHeight();
-    }, 100));
-    
-    sidebarHeightObserver.observe(sidebar);
-  }
+  const h = sidebar.offsetHeight || 0;
+  document.documentElement.style.setProperty('--sidebar-h', h + 'px');
+  document.documentElement.style.setProperty('--sidebar-height', h + 'px');
 }
 
 function debounce(fn, delay = 150) {
@@ -113,18 +80,18 @@ async function init() {
     renderProjects();
 
     updateSafeAreaVars();
-    setupSidebarHeight();
+    updateStickyOffset();
 
     const handleLayoutChange = debounce(() => {
       updateSafeAreaVars();
-      setupSidebarHeight();
+      updateStickyOffset();
       setupProjectObserver();
-    }, 300);
+    }, 150);
 
     window.addEventListener('resize', handleLayoutChange);
     window.addEventListener('load', () => {
       updateSafeAreaVars();
-      setupSidebarHeight();
+      updateStickyOffset();
       setupProjectObserver();
     });
 
@@ -199,69 +166,23 @@ function renderAbout() {
   setAboutOpen(aboutPanel.classList.contains('open'));
 }
 
-// OPTIMIZADO: Mejorar gestión del about panel con bloqueo de scroll y gestión de foco
 function setAboutOpen(isOpen, options = {}) {
   if (!aboutPanel) return;
   const { focusToggle = false } = options;
   const open = Boolean(isOpen);
-  
   aboutPanel.classList.toggle('open', open);
   aboutPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
-  
-  // Gestión de foco mejorada - Mejora #5
-  if (open) {
-    // Guardar el elemento con foco actual
-    lastFocusedElement = document.activeElement;
-    
-    // Mover foco al botón de cerrar
-    requestAnimationFrame(() => {
-      const closeBtn = aboutPanel.querySelector('.about-close');
-      if (closeBtn) closeBtn.focus();
-    });
-  } else {
-    // Restaurar foco al elemento anterior
-    if (focusToggle && aboutToggle) {
+  if (aboutToggle) {
+    aboutToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (!open && focusToggle) {
       requestAnimationFrame(() => {
         aboutToggle.focus();
       });
-    } else if (lastFocusedElement) {
-      requestAnimationFrame(() => {
-        lastFocusedElement.focus();
-      });
     }
   }
-  
-  if (aboutToggle) {
-    aboutToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-  }
-  
   document.documentElement.classList.toggle('about-open', open);
   if (document.body) {
     document.body.classList.toggle('about-open', open);
-  }
-  
-  // Bloquear scroll de proyectos cuando about está abierto
-  if (projectsContainer) {
-    if (open) {
-      // Guardar posición actual
-      projectsContainer.dataset.scrollPos = projectsContainer.scrollTop;
-      
-      // Bloquear scroll
-      projectsContainer.style.overflow = 'hidden';
-      projectsContainer.style.pointerEvents = 'none';
-      projectsContainer.style.touchAction = 'none';
-    } else {
-      // Restaurar scroll
-      projectsContainer.style.overflow = '';
-      projectsContainer.style.pointerEvents = '';
-      projectsContainer.style.touchAction = '';
-      
-      // Restaurar posición después de la transición
-      requestAnimationFrame(() => {
-        const scrollPos = parseInt(projectsContainer.dataset.scrollPos || 0);
-        projectsContainer.scrollTop = scrollPos;
-      });
-    }
   }
 }
 
@@ -493,9 +414,7 @@ function makeMediaFrame(src, alt = '', scale = 100) {
   img.className = 'media-image';
   img.src = src;
   img.alt = alt;
-  // Mejora #6: Optimización de carga de imágenes
   img.loading = 'lazy';
-  img.decoding = 'async';
   const FALLBACK_SRC = 'images/reference/pasted_file_KN2lG4_MacBookAir-1.png';
 
   const scaleValue = Math.max(1, Math.min(100, parseInt(scale, 10) || 100)) / 100;
