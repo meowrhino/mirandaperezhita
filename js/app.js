@@ -1002,6 +1002,13 @@ function setupEventListeners() {
 
       // Preservar la posición de scroll antes de cambiar idioma
       const savedScrollTop = projectsContainer ? projectsContainer.scrollTop : 0;
+      const savedScrollLeft = projectMenu ? projectMenu.scrollLeft : 0;
+
+      // Desactivar temporalmente el scroll sync para evitar interferencias
+      cleanupScrollSync();
+      if (projectObserver) {
+        projectObserver.disconnect();
+      }
 
       // Cambiar idioma
       activeLanguage = lang;
@@ -1011,12 +1018,20 @@ function setupEventListeners() {
       renderAbout();
       updateStickyOffset();
 
-      // Restaurar la posición de scroll después del cambio
-      if (projectsContainer) {
-        requestAnimationFrame(() => {
+      // Restaurar la posición de scroll y reactivar observers
+      requestAnimationFrame(() => {
+        if (projectsContainer) {
           projectsContainer.scrollTop = savedScrollTop;
+        }
+        if (projectMenu) {
+          projectMenu.scrollLeft = savedScrollLeft;
+        }
+        
+        // Reactivar el scroll sync y observer después de restaurar el scroll
+        requestAnimationFrame(() => {
+          setupProjectObserver();
         });
-      }
+      });
     });
   });
 
