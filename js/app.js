@@ -1000,6 +1000,9 @@ function setupEventListeners() {
       langButtons.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
 
+      // Preservar la posición de scroll antes de cambiar idioma
+      const savedScrollTop = projectsContainer ? projectsContainer.scrollTop : 0;
+
       // Cambiar idioma
       activeLanguage = lang;
       updateSidebarColor();
@@ -1007,6 +1010,13 @@ function setupEventListeners() {
       updateProjectsContent();
       renderAbout();
       updateStickyOffset();
+
+      // Restaurar la posición de scroll después del cambio
+      if (projectsContainer) {
+        requestAnimationFrame(() => {
+          projectsContainer.scrollTop = savedScrollTop;
+        });
+      }
     });
   });
 
