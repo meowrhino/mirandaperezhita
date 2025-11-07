@@ -1010,6 +1010,15 @@ function setupEventListeners() {
         projectObserver.disconnect();
       }
 
+      // Bloquear scroll completamente durante el cambio de idioma
+      const originalOverflow = projectsContainer ? projectsContainer.style.overflow : '';
+      const originalScrollBehavior = document.documentElement.style.scrollBehavior;
+      
+      if (projectsContainer) {
+        projectsContainer.style.overflow = 'hidden';
+      }
+      document.documentElement.style.scrollBehavior = 'auto';
+
       // Cambiar idioma
       activeLanguage = lang;
       updateSidebarColor();
@@ -1018,14 +1027,16 @@ function setupEventListeners() {
       renderAbout();
       updateStickyOffset();
 
-      // Restaurar la posición de scroll y reactivar observers
+      // Restaurar scroll y configuración
       requestAnimationFrame(() => {
         if (projectsContainer) {
           projectsContainer.scrollTop = savedScrollTop;
+          projectsContainer.style.overflow = originalOverflow;
         }
         if (projectMenu) {
           projectMenu.scrollLeft = savedScrollLeft;
         }
+        document.documentElement.style.scrollBehavior = originalScrollBehavior;
         
         // Reactivar el scroll sync y observer después de restaurar el scroll
         requestAnimationFrame(() => {
