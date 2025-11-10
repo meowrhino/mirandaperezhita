@@ -33,39 +33,42 @@ function setupSidebarHeight() {
     sidebarHeightObserver.disconnect();
   }
 
-  // Solo en móvil
-  if (window.innerWidth >= 600) {
-    document.documentElement.style.removeProperty("--sidebar-actual-height");
-    return;
-  }
-
-  if (!sidebar) return;
-
-  // Calcular altura inicial
-  const updateHeight = () => {
-    const height = sidebar.offsetHeight;
-    // Solo actualizar si el cambio es significativo (>5px) - Mejora #4
-    if (Math.abs(height - lastSidebarHeight) > 5) {
-      lastSidebarHeight = height;
-      document.documentElement.style.setProperty(
-        "--sidebar-actual-height",
-        `${height}px`
-      );
-    }
-  };
-
-  updateHeight();
+  applySidebarHeight();
+  if (window.innerWidth >= 600 || !sidebar) return;
 
   // Observar cambios futuros (ej: cambio de idioma)
   if ("ResizeObserver" in window) {
     sidebarHeightObserver = new ResizeObserver(
       debounce(() => {
-        updateHeight();
+        applySidebarHeight();
       }, 100)
     );
 
     sidebarHeightObserver.observe(sidebar);
   }
+}
+
+function applySidebarHeight() {
+  // Solo en móvil
+  if (window.innerWidth >= 600 || !sidebar) {
+    document.documentElement.style.removeProperty("--sidebar-actual-height");
+    lastSidebarHeight = 0;
+    return;
+  }
+
+  const height = sidebar.offsetHeight;
+  // Solo actualizar si el cambio es significativo (>5px) - Mejora #4
+  if (Math.abs(height - lastSidebarHeight) > 5) {
+    lastSidebarHeight = height;
+    document.documentElement.style.setProperty(
+      "--sidebar-actual-height",
+      `${height}px`
+    );
+  }
+}
+
+function updateStickyOffset() {
+  applySidebarHeight();
 }
 
 function debounce(fn, delay = 150) {
@@ -611,6 +614,46 @@ function makeMediaFrame(src, alt = "", scale = 100) {
   return frame;
 }
 
+function populateProjectInfo(target, projectData, projectTitleOverride) {
+  if (!target || !projectData) return null;
+  target.classList.add("project-info");
+  while (target.firstChild) target.removeChild(target.firstChild);
+
+  const projectTitle =
+    projectTitleOverride ?? getLocalizedText(projectData.titol);
+
+  const firstP = document.createElement("p");
+  firstP.className = "project-text";
+  let clientVal = "";
+  if (typeof projectData.client === "object" && projectData.client !== null) {
+    clientVal = getLocalizedText(projectData.client);
+  } else if (typeof projectData.client === "string") {
+    clientVal = projectData.client;
+  }
+  const year = (projectData.data || "").toString();
+  firstP.textContent = [projectTitle, clientVal, year]
+    .filter(Boolean)
+    .join(", ");
+  target.appendChild(firstP);
+
+  const hasTextos =
+    Array.isArray(projectData.textos) && projectData.textos.length;
+  const fallbackParagraphs = getLocalizedParagraphs(projectData.text);
+  const paragraphs = (hasTextos ? projectData.textos : fallbackParagraphs)
+    .map((p) => (typeof p === "string" ? p : String(p || "")))
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  paragraphs.forEach((p) => {
+    const para = document.createElement("p");
+    para.className = "project-text";
+    para.innerHTML = formatInline(p).replace(/\n/g, "<br>");
+    target.appendChild(para);
+  });
+
+  return target;
+}
+
 // Renderizar menú de proyectos
 function renderProjectMenu() {
   if (!projectMenu) return;
@@ -700,39 +743,7 @@ function renderProjects() {
 
     // Información del proyecto (mínima): todo en mismos estilos
     const info = document.createElement("div");
-    info.className = "project-info";
-
-    // Primera línea: [título], [cliente], [año] (usando siempre titol, client, data desde projectData)
-    const firstP = document.createElement("p");
-    firstP.className = "project-text";
-    let clientVal = "";
-    if (typeof projectData.client === "object" && projectData.client !== null) {
-      clientVal = getLocalizedText(projectData.client);
-    } else if (typeof projectData.client === "string") {
-      clientVal = projectData.client;
-    }
-    const year = (projectData.data || "").toString();
-    firstP.textContent = [projectTitle, clientVal, year]
-      .filter(Boolean)
-      .join(", ");
-    info.appendChild(firstP);
-
-    // Resto de descripción: textos[] (array de párrafos). Fallback a text[lang]
-    const hasTextos =
-      Array.isArray(projectData.textos) && projectData.textos.length;
-    const fallbackParagraphs = getLocalizedParagraphs(projectData.text);
-    const paragraphs = (hasTextos ? projectData.textos : fallbackParagraphs)
-      .map((p) => (typeof p === "string" ? p : String(p || "")))
-      .map((p) => p.trim())
-      .filter(Boolean);
-
-    paragraphs.forEach((p) => {
-      const para = document.createElement("p");
-      para.className = "project-text";
-      para.innerHTML = formatInline(p).replace(/\n/g, "<br>");
-      info.appendChild(para);
-    });
-
+    populateProjectInfo(info, projectData, projectTitle);
     content.appendChild(info);
 
     // Galería de imágenes (después de la info)
@@ -1069,23 +1080,6 @@ function setupEventListeners() {
 
   // Prevenir comportamiento extraño en iOS durante scroll horizontal del menú
   if (projectMenu) {
-    let isScrolling = false;
-    let scrollTimeout;
-
-    projectMenu.addEventListener(
-      "scroll",
-      () => {
-        isScrolling = true;
-        clearTimeout(scrollTimeout);
-
-        // Marcar que terminó el scroll después de 150ms
-        scrollTimeout = setTimeout(() => {
-          isScrolling = false;
-        }, 150);
-      },
-      PASSIVE_SCROLL_OPTIONS
-    );
-
     // Prevenir que el scroll del menú afecte al scroll del documento
     projectMenu.addEventListener(
       "touchstart",
@@ -1125,44 +1119,7 @@ function updateProjectsContent() {
     // Actualizar textos (mínimo): reconstruir los párrafos dentro de .project-info
     const info = section.querySelector(".project-info");
     if (info) {
-      // Limpia todo el contenido de info y vuelve a crearlo con el formato minimal
-      while (info.firstChild) info.removeChild(info.firstChild);
-
-      const firstP = document.createElement("p");
-      firstP.className = "project-text";
-      let clientVal = "";
-      if (
-        typeof projectData.client === "object" &&
-        projectData.client !== null
-      ) {
-        clientVal = getLocalizedText(projectData.client);
-      } else if (typeof projectData.client === "string") {
-        clientVal = projectData.client;
-      }
-      const year = (projectData.data || "").toString();
-      firstP.textContent = [
-        getLocalizedText(projectData.titol),
-        clientVal,
-        year,
-      ]
-        .filter(Boolean)
-        .join(", ");
-      info.appendChild(firstP);
-
-      const hasTextos =
-        Array.isArray(projectData.textos) && projectData.textos.length;
-      const fallbackParagraphs = getLocalizedParagraphs(projectData.text);
-      const paragraphs = (hasTextos ? projectData.textos : fallbackParagraphs)
-        .map((p) => (typeof p === "string" ? p : String(p || "")))
-        .map((p) => p.trim())
-        .filter(Boolean);
-
-      paragraphs.forEach((p) => {
-        const para = document.createElement("p");
-        para.className = "project-text";
-        para.innerHTML = formatInline(p).replace(/\n/g, "<br>");
-        info.appendChild(para);
-      });
+      populateProjectInfo(info, projectData);
     }
     const img = section.querySelector(".media-frame.hero .media-image");
     if (img) {
