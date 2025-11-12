@@ -5,8 +5,8 @@
         "size": "100"
     },
     "titol": {
-        "cat": "només si fa olor de terra",
-        "es": "només si fa olor de terra",
+        "cat": "només si fa olor de *terra*",
+        "es": "només si fa *olor* de terra",
         "link": ""
     },
     "client": {
