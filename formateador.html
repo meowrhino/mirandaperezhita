@@ -129,12 +129,12 @@
         placeholder="ES"></textarea>
 
       <div class="actions">
-        <button id="copiar">Copiar</button>
-        <button id="limpiar">Limpiar</button>
+        <!-- <button id="limpiar">Limpiar</button> -->
         <button id="btnBold" title="Negrita (**)">B</button>
         <button id="btnItalic" title="Cursiva (*)">I</button>
         <button id="btnUnderline" title="Subrayado (__)">U</button>
         <button id="btnLink" title="Enlace [texto](url)">Link</button>
+        <button id="copiar">Copiar</button>
       </div>
     </section>
 
@@ -146,7 +146,7 @@
   <script>
     const salida = document.getElementById('salida');
     const btnCopiar = document.getElementById('copiar');
-    const btnLimpiar = document.getElementById('limpiar');
+    // const btnLimpiar = document.getElementById('limpiar');
     const btnBold = document.getElementById('btnBold');
     const btnItalic = document.getElementById('btnItalic');
     const btnUnderline = document.getElementById('btnUnderline');
@@ -330,12 +330,12 @@
       }
     });
 
-    btnLimpiar.addEventListener('click', () => {
-      textareas.forEach((field) => { field.value = ''; });
-      const first = textareas[0];
-      if (first) first.focus();
-      generar();
-    });
+    // btnLimpiar.addEventListener('click', () => {
+    //   textareas.forEach((field) => { field.value = ''; });
+    //   const first = textareas[0];
+    //   if (first) first.focus();
+    //   generar();
+    // });
 
     function wrapSelection(before, after) {
       const field = obtenerTextareaActiva();
