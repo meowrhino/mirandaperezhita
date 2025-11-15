@@ -405,7 +405,6 @@ body.about-open #projects-container {
   text-align: center;
   line-height: 1.45;
   font-size: 1rem;
-  padding-bottom: 12vh;
 }
 
 .about-body {
@@ -435,14 +434,17 @@ body.about-open #projects-container {
 
 .about-content a {
   text-decoration: underline;
+  text-underline-offset: var(--underline-offset);
 }
 
 .about-footer {
-  position: absolute;
-  bottom: calc(10vh + var(--safe-bottom));
-  left: 50%;
-  transform: translateX(-50%);
+  margin-top: 5rem;
   text-align: center;
+}
+
+.about-footer a {
+  text-decoration: underline;
+  text-underline-offset: var(--underline-offset);
 }
 
 .about-close {
@@ -490,4 +492,21 @@ body.about-open #projects-container {
   .about-panel {
     left: 25%;
   }
+}
+
+/* Animación de parpadeo para hover en subrayados */
+@keyframes blink-underline {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.lang-btn:hover,
+.project-link:hover,
+.about-content a:hover,
+.about-footer a:hover {
+  animation: blink-underline 0.6s ease-in-out infinite;
 }
