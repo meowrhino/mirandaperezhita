@@ -28,6 +28,11 @@ a {
   color: inherit;
 }
 
+u {
+  text-decoration: underline;
+  text-underline-offset: var(--underline-offset);
+}
+
 button,
 input,
 select,
@@ -207,6 +212,12 @@ body.about-open #projects-container {
   font-size: 1rem;
   line-height: 1.5;
   margin-top: 0.25rem;
+}
+
+.project-info a,
+.project-text a {
+  text-decoration: underline;
+  text-underline-offset: var(--underline-offset);
 }
 
 /* Responsive: 600-1000px */
@@ -494,19 +505,22 @@ body.about-open #projects-container {
   }
 }
 
-/* Animación de parpadeo para hover en subrayados */
+/* Animación de parpadeo para hover en subrayados - solo afecta al color del subrayado */
 @keyframes blink-underline {
   0%, 100% {
-    opacity: 1;
+    text-decoration-color: currentColor;
   }
   50% {
-    opacity: 0.3;
+    text-decoration-color: transparent;
   }
 }
 
+/* Aplicar parpadeo solo al subrayado, no al texto */
 .lang-btn:hover,
 .project-link:hover,
 .about-content a:hover,
-.about-footer a:hover {
-  animation: blink-underline 0.6s ease-in-out infinite;
+.about-footer a:hover,
+.project-info a:hover,
+.project-text a:hover {
+  animation: blink-underline 1.4s ease-in-out infinite;
 }

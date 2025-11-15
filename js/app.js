@@ -231,11 +231,11 @@ function showLoadingError() {
 async function loadAbout() {
   try {
     const res = await fetchWithRetry("data/about.json");
-    if (!res.ok) return; // opcional: no bloquear si no existe
     aboutData = await res.json();
     renderAbout();
   } catch (e) {
-    // silencioso: si no existe o falla, lo veremos más adelante
+    console.warn("No se pudo cargar about.json:", e);
+    // silencioso: si no existe o falla, no bloquear la aplicación
   }
 }
 
@@ -652,10 +652,10 @@ async function loadProjects(projects) {
     pending.map(async (project) => {
       try {
         const response = await fetchWithRetry(`data/${project.slug}.json`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         projectsData[project.slug] = await response.json();
       } catch (error) {
         console.error(`Error cargando proyecto ${project.slug}:`, error);
+        // No bloquear el renderizado si falla un proyecto individual
       }
     })
   );
@@ -782,8 +782,9 @@ function renderProjectMenu() {
 
 // Renderizar proyectos
 function renderProjects() {
-  const allProjects = getVisibleProjectsFromHome();
+  if (!projectsContainer) return;
   const visibleProjects = getVisibleProjects();
+  const allProjects = getVisibleProjectsFromHome();
   const visibleSlugs = visibleProjects.map((p) => p.slug);
 
   // Crear wrapper si no existe
@@ -799,8 +800,12 @@ function renderProjects() {
 
   // Renderizar todos los proyectos
   allProjects.forEach((project) => {
+    if (!project || !project.slug) return;
     const projectData = projectsData[project.slug];
-    if (!projectData) return;
+    if (!projectData) {
+      console.warn(`No se encontraron datos para el proyecto: ${project.slug}`);
+      return;
+    }
 
     const section = document.createElement("section");
     section.className = "project-section";
