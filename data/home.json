@@ -1,24 +1,39 @@
 {
     "home_colors": {
-        "cat": "#E6D8C3",
-        "es": "#F8E3CE"
+        "cat": "#F9F8F6",
+        "es": "#EFECE3"
     },
     "nota_de_curt": 0,
     "_comment": "nota_de_curt en 35 funciona bastante bien",
     "projectes_visibles": [
         {
+            "slug": "cosas-de-señoras",
+            "color": "#A5BFCC",
+            "visible": true
+        },
+        {
             "slug": "new-ywork",
-            "color": "#748873",
+            "color": "#96C9F4",
             "visible": true
         },
         {
             "slug": "monica-planes",
             "color": "#E8988A",
-            "visible": true
+            "visible": false
         },
         {
             "slug": "blanca-arias",
-            "color": "#7B4019",
+            "color": "#FFC4C4",
+            "visible": true
+        },
+        {
+            "slug": "dentro-caballo",
+            "color": "#96A78D",
+            "visible": true
+        },
+          {
+            "slug": "as-time-bends",
+            "color": "#87BAC3",
             "visible": true
         }
     ]
