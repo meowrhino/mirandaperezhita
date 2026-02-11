@@ -3,7 +3,9 @@
     
     "primera_imatge": {
         "src": "images/monicaPlanes/1.jpeg",
-        "size": "100"
+        "size": "100",
+        "w": 1152,
+        "h": 1152
     },
     "titol": {
         "cat": "Construccions filials",
@@ -27,23 +29,33 @@
     "imatges": [
         {
             "src": "images/monicaPlanes/2.jpeg",
-            "size": "100"
+            "size": "100",
+            "w": 2500,
+            "h": 1810
         },
         {
             "src": "images/monicaPlanes/3.jpeg",
-            "size": "100"
+            "size": "100",
+            "w": 1080,
+            "h": 1080
         },
         {
             "src": "images/monicaPlanes/4.jpeg",
-            "size": "100"
+            "size": "100",
+            "w": 2500,
+            "h": 1810
         },
         {
             "src": "images/monicaPlanes/5.jpeg",
-            "size": "100"
+            "size": "100",
+            "w": 2500,
+            "h": 1810
         },
         {
             "src": "images/monicaPlanes/6.jpeg",
-            "size": "100"
+            "size": "100",
+            "w": 1152,
+            "h": 1152
         }
     ]
 }

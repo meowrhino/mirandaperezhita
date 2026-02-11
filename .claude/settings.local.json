@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude:*)",
+      "Bash(for f in images/cosasDeSeñoras/1.webp images/NY/1.jpg images/blancaArias/1.jpg images/dentroCaballo/1.jpg images/asTimeBends/1.png images/monicaPlanes/1.jpeg)",
+      "Bash(do sips -g pixelWidth -g pixelHeight \"$f\")",
+      "Bash(done)",
+      "Bash(node -e \"try{require\\(''image-size''\\);console.log\\(''image-size: available''\\)}catch\\(e\\){console.log\\(''image-size: not installed''\\)}\")",
+      "Bash(node -e \"try{require\\(''sharp''\\);console.log\\(''sharp: available''\\)}catch\\(e\\){console.log\\(''sharp: not installed''\\)}\")",
+      "Bash(npm init -y)",
+      "Bash(npm install image-size --save-dev)",
+      "Bash(for:*)",
+      "Bash(do [ -f \"$f\" ])"
+    ]
+  }
+}

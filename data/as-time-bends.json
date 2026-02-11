@@ -2,7 +2,9 @@
     "slug": "as-time-bends",
     "primera_imatge": {
         "src": "images/asTimeBends/1.png",
-        "size": "100"
+        "size": "100",
+        "w": 714,
+        "h": 398
     },
     "titol": {
         "cat": "As time bends",
@@ -28,11 +30,15 @@
     "imatges": [
         {
             "src": "images/asTimeBends/2.png",
-            "size": "75"
+            "size": "75",
+            "w": 714,
+            "h": 396
         },
         {
             "src": "images/asTimeBends/3.png",
-            "size": "100"
+            "size": "100",
+            "w": 714,
+            "h": 402
         }
     ]
 }

@@ -14,6 +14,8 @@ let lastSidebarHeight = 0;
 let lastFocusedElement = null;
 let aboutCloseTimerId = null;
 let aboutTransitionHandler = null;
+let scrollCorrectionTarget = null;
+let scrollCorrectionTimer = null;
 
 const PASSIVE_SCROLL_OPTIONS = { passive: true };
 const DEFAULT_TEXT_COLOR = "#000000";
@@ -662,7 +664,7 @@ async function loadProjects(projects) {
   );
 }
 
-function makeMediaFrame(src, alt = "", scale = 100) {
+function makeMediaFrame(src, alt = "", scale = 100, meta = null) {
   const frame = document.createElement("div");
   frame.className = "media-frame";
 
@@ -679,11 +681,21 @@ function makeMediaFrame(src, alt = "", scale = 100) {
     Math.max(1, Math.min(100, parseInt(scale, 10) || 100)) / 100;
   img.style.setProperty("--scale", scaleValue.toString());
 
+  // Si hay dimensiones pre-calculadas en el JSON, aplicar ratio inmediatamente
+  if (meta?.w && meta?.h) {
+    frame.style.setProperty("--natural-w", meta.w + "px");
+    frame.style.setProperty("--ratio", `${meta.w} / ${meta.h}`);
+  }
+
   const setVars = () => {
     const w = img.naturalWidth || 1;
     const h = img.naturalHeight || 1;
     frame.style.setProperty("--natural-w", w + "px");
     frame.style.setProperty("--ratio", `${w} / ${h}`);
+    // Corrección event-driven: si hay un scroll target activo, corregir posición
+    if (scrollCorrectionTarget) {
+      correctScrollToElement(scrollCorrectionTarget);
+    }
   };
 
   if (img.complete && img.naturalWidth) {
@@ -837,7 +849,7 @@ function renderProjects() {
     const heroMeta = projectData.primera_imatge;
     if (heroMeta?.src) {
       const heroScale = heroMeta.size ?? 100;
-      const hero = makeMediaFrame(heroMeta.src, projectTitle, heroScale);
+      const hero = makeMediaFrame(heroMeta.src, projectTitle, heroScale, heroMeta);
       hero.classList.add("hero");
       content.appendChild(hero);
     }
@@ -857,7 +869,7 @@ function renderProjects() {
 
     images.forEach((imgMeta) => {
       if (!imgMeta || !imgMeta.src) return;
-      const item = makeMediaFrame(imgMeta.src, projectTitle, imgMeta.size);
+      const item = makeMediaFrame(imgMeta.src, projectTitle, imgMeta.size, imgMeta);
       gallery.appendChild(item);
     });
 
@@ -884,13 +896,41 @@ function getVisibleProjects() {
   return getVisibleProjectsFromHome();
 }
 
+function getElementOffsetInContainer(el, container) {
+  const elRect = el.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+  let offset = container.scrollTop + (elRect.top - containerRect.top);
+  const scrollMargin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+  offset -= scrollMargin;
+  return Math.max(0, offset);
+}
+
+function correctScrollToElement(el) {
+  if (!el || !projectsContainer) return;
+  const targetOffset = getElementOffsetInContainer(el, projectsContainer);
+  if (Math.abs(targetOffset - projectsContainer.scrollTop) > 5) {
+    projectsContainer.scrollTo({ top: targetOffset, behavior: "auto" });
+  }
+}
+
 // Scroll suave a un proyecto
 function scrollToProject(slug) {
   const element = document.getElementById(`project-${slug}`);
-  if (element) {
-    element.scrollIntoView({ behavior: "smooth", block: "start" });
-    setActiveProject(slug);
-  }
+  if (!element) return;
+
+  setActiveProject(slug);
+
+  // Activar corrección event-driven mientras cargan imágenes
+  scrollCorrectionTarget = element;
+  if (scrollCorrectionTimer) clearTimeout(scrollCorrectionTimer);
+  scrollCorrectionTimer = setTimeout(() => {
+    scrollCorrectionTarget = null;
+    scrollCorrectionTimer = null;
+  }, 5000);
+
+  // Scroll programático al offset calculado
+  const targetOffset = getElementOffsetInContainer(element, projectsContainer);
+  projectsContainer.scrollTo({ top: targetOffset, behavior: "smooth" });
 }
 
 function setActiveProject(slug, options = {}) {

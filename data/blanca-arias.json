@@ -2,7 +2,9 @@
     "slug": "blanca-arias",
     "primera_imatge": {
         "src": "images/blancaArias/1.jpg",
-        "size": "100"
+        "size": "100",
+        "w": 3009,
+        "h": 3876
     },
     "titol": {
         "cat": "Només si fa olor de terra",
@@ -26,15 +28,21 @@
     "imatges": [
         {
             "src": "images/blancaArias/2.jpg",
-            "size": "75"
+            "size": "75",
+            "w": 4000,
+            "h": 2668
         },
         {
             "src": "images/blancaArias/3.jpg",
-            "size": "100"
+            "size": "100",
+            "w": 4000,
+            "h": 2668
         },
         {
             "src": "images/blancaArias/4.jpg",
-            "size": "75"
+            "size": "75",
+            "w": 4000,
+            "h": 2668
         }
     ]
 }
