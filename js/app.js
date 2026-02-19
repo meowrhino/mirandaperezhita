@@ -21,6 +21,7 @@ const PASSIVE_SCROLL_OPTIONS = { passive: true };
 const DEFAULT_TEXT_COLOR = "#000000";
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 segundo
+const ABOUT_FALLBACK_TEXT = "about no disponible";
 
 // Elementos del DOM
 const sidebar = document.getElementById("sidebar");
@@ -81,6 +82,14 @@ function debounce(fn, delay = 150) {
     clearTimeout(t);
     t = setTimeout(() => fn(...args), delay);
   };
+}
+
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 }
 
 function updateSafeAreaVars() {
@@ -237,7 +246,9 @@ async function loadAbout() {
     renderAbout();
   } catch (e) {
     console.warn("No se pudo cargar about.json:", e);
-    // silencioso: si no existe o falla, no bloquear la aplicación
+    // fallback visible si no existe o falla
+    aboutData = null;
+    renderAbout();
   }
 }
 
@@ -274,7 +285,8 @@ function renderAbout() {
   body.appendChild(h2);
 
   const paragraphs = getLocalizedParagraphs(aboutData?.text, activeLanguage);
-  paragraphs.forEach((text) => {
+  const aboutParagraphs = paragraphs.length ? paragraphs : [ABOUT_FALLBACK_TEXT];
+  aboutParagraphs.forEach((text) => {
     const p = document.createElement("p");
     p.innerHTML = formatInline(text); // soporta **, *, __, [texto](url)
     body.appendChild(p);
@@ -930,7 +942,8 @@ function scrollToProject(slug) {
 
   // Scroll programático al offset calculado
   const targetOffset = getElementOffsetInContainer(element, projectsContainer);
-  projectsContainer.scrollTo({ top: targetOffset, behavior: "smooth" });
+  const behavior = prefersReducedMotion() ? "auto" : "smooth";
+  projectsContainer.scrollTo({ top: targetOffset, behavior });
 }
 
 function setActiveProject(slug, options = {}) {
@@ -983,8 +996,9 @@ function setActiveProject(slug, options = {}) {
     if (shouldScrollMenu) {
       // Mejorar el scroll en móvil con un pequeño delay
       requestAnimationFrame(() => {
+        const behavior = prefersReducedMotion() ? "auto" : "smooth";
         activeButton.scrollIntoView({
-          behavior: "smooth",
+          behavior,
           block: "nearest",
           inline: "center",
         });

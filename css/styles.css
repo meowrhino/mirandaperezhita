@@ -536,3 +536,17 @@ body.about-open #projects-container {
 .project-text a:hover {
   animation: blink-underline 1.4s ease-in-out infinite;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

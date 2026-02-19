@@ -14,7 +14,16 @@
       "Bash(python3:*)",
       "Bash(# Try ffmpeg with libwebp explicitly, check codecs available ffmpeg -codecs)",
       "Bash(# Check what encoders are available for webp ffmpeg -encoders)",
-      "Bash(pip3 install:*)"
+      "Bash(pip3 install:*)",
+      "Bash(do identify -format \"%f: %wx%h\\\\n\" \"$f\")",
+      "Bash(echo:*)",
+      "Bash(while read f)",
+      "Bash(do python3 -m json.tool \"$f\")",
+      "Bash(do)",
+      "Bash(if [ -f \"$f\" ])",
+      "Bash(then)",
+      "Bash(else)",
+      "Bash(fi)"
     ]
   }
 }
