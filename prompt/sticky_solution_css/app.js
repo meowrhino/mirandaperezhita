@@ -415,7 +415,7 @@ function makeMediaFrame(src, alt = '', scale = 100) {
   img.src = src;
   img.alt = alt;
   img.loading = 'lazy';
-  const FALLBACK_SRC = 'images/reference/pasted_file_KN2lG4_MacBookAir-1.png';
+  const FALLBACK_SRC = 'images/reference/imagen-no-disponible.svg';
 
   const scaleValue = Math.max(1, Math.min(100, parseInt(scale, 10) || 100)) / 100;
   img.style.setProperty('--scale', scaleValue.toString());

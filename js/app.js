@@ -675,7 +675,7 @@ function makeMediaFrame(src, alt = "", scale = 100, meta = null) {
   // Mejora #6: Optimización de carga de imágenes
   img.loading = "lazy";
   img.decoding = "async";
-  const FALLBACK_SRC = "images/reference/pasted_file_KN2lG4_MacBookAir-1.png";
+  const FALLBACK_SRC = "images/reference/imagen-no-disponible.svg";
 
   const scaleValue =
     Math.max(1, Math.min(100, parseInt(scale, 10) || 100)) / 100;
