@@ -38,7 +38,7 @@ function setupSidebarHeight() {
   }
 
   applySidebarHeight();
-  if (window.innerWidth >= 600 || !sidebar) return;
+  if (window.innerWidth >= 768 || !sidebar) return;
 
   // Observar cambios futuros (ej: cambio de idioma)
   if ("ResizeObserver" in window) {
@@ -54,7 +54,7 @@ function setupSidebarHeight() {
 
 function applySidebarHeight() {
   // Solo en móvil
-  if (window.innerWidth >= 600 || !sidebar) {
+  if (window.innerWidth >= 768 || !sidebar) {
     document.documentElement.style.removeProperty("--sidebar-actual-height");
     lastSidebarHeight = 0;
     return;
