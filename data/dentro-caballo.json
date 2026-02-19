@@ -1,7 +1,7 @@
 {
     "slug": "dentro-caballo",
     "primera_imatge": {
-        "src": "images/dentroCaballo/1.jpg",
+        "src": "images/dentroCaballo/1.webp",
         "size": "100",
         "w": 1981,
         "h": 1416
@@ -27,13 +27,13 @@
     },
     "imatges": [
         {
-            "src": "images/dentroCaballo/2.jpg",
+            "src": "images/dentroCaballo/2.webp",
             "size": "75",
             "w": 1982,
             "h": 1415
         },
         {
-            "src": "images/dentroCaballo/3.jpg",
+            "src": "images/dentroCaballo/3.webp",
             "size": "100",
             "w": 1986,
             "h": 1415

@@ -7,8 +7,18 @@
     "_comment": "nota_de_curt en 35 funciona bastante bien",
     "projectes_visibles": [
         {
+            "slug": "carnaval",
+            "color": "#BB6464",
+            "visible": true
+        },
+        {
             "slug": "cosas-de-señoras",
             "color": "#A5BFCC",
+            "visible": true
+        },
+        {
+            "slug": "ejercicios",
+            "color": "#efeca7",
             "visible": true
         },
         {
@@ -17,9 +27,9 @@
             "visible": true
         },
         {
-            "slug": "monica-planes",
-            "color": "#E8988A",
-            "visible": false
+            "slug": "art-nou",
+            "color": "#F5E7C6",
+            "visible": true
         },
         {
             "slug": "blanca-arias",
@@ -27,13 +37,18 @@
             "visible": true
         },
         {
+            "slug": "as-time-bends",
+            "color": "#87BAC3",
+            "visible": true
+        },
+        {
             "slug": "dentro-caballo",
             "color": "#96A78D",
             "visible": true
         },
-          {
-            "slug": "as-time-bends",
-            "color": "#87BAC3",
+        {
+            "slug": "monica-planes",
+            "color": "#E8988A",
             "visible": true
         }
     ]

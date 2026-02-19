@@ -1,7 +1,7 @@
 {
     "slug": "new-ywork",
     "primera_imatge": {
-        "src": "images/NY/1.jpg",
+        "src": "images/NY/1.webp",
         "size": "100",
         "w": 8272,
         "h": 6200
@@ -29,13 +29,13 @@
     },
     "imatges": [
         {
-            "src": "images/NY/2.jpg",
+            "src": "images/NY/2.webp",
             "size": "75",
             "w": 6355,
             "h": 7944
         },
         {
-            "src": "images/NY/3.jpg",
+            "src": "images/NY/3.webp",
             "size": "100",
             "w": 6200,
             "h": 8272

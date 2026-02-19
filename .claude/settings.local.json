@@ -10,7 +10,11 @@
       "Bash(npm init -y)",
       "Bash(npm install image-size --save-dev)",
       "Bash(for:*)",
-      "Bash(do [ -f \"$f\" ])"
+      "Bash(do [ -f \"$f\" ])",
+      "Bash(python3:*)",
+      "Bash(# Try ffmpeg with libwebp explicitly, check codecs available ffmpeg -codecs)",
+      "Bash(# Check what encoders are available for webp ffmpeg -encoders)",
+      "Bash(pip3 install:*)"
     ]
   }
 }
