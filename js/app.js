@@ -176,6 +176,19 @@ async function init() {
     renderProjectMenu();
     renderProjects();
 
+    // Navegar al proyecto del hash inicial si existe
+    const hashSlug = getSlugFromHash();
+    if (hashSlug && document.getElementById(`project-${hashSlug}`)) {
+      // Esperar un frame para que el layout esté calculado
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`project-${hashSlug}`);
+        if (!el || !projectsContainer) return;
+        const offset = getElementOffsetInContainer(el, projectsContainer);
+        projectsContainer.scrollTo({ top: offset, behavior: "auto" });
+        setActiveProject(hashSlug, { scrollIntoView: false });
+      });
+    }
+
     updateSafeAreaVars();
     setupSidebarHeight();
 
@@ -946,6 +959,22 @@ function scrollToProject(slug) {
   projectsContainer.scrollTo({ top: targetOffset, behavior });
 }
 
+// Actualizar el hash de la URL sin añadir entrada al historial
+function updateUrlHash(slug) {
+  if (!slug || typeof history === "undefined") return;
+  const newHash = `#${slug}`;
+  if (location.hash !== newHash) {
+    history.replaceState(null, "", newHash);
+  }
+}
+
+// Leer el hash inicial de la URL y devolver el slug si existe
+function getSlugFromHash() {
+  const hash = location.hash;
+  if (!hash || hash.length < 2) return null;
+  return hash.slice(1); // quitar el '#'
+}
+
 function setActiveProject(slug, options = {}) {
   if (!slug) return;
   const { scrollIntoView = true, forceScroll = false } = options;
@@ -990,6 +1019,10 @@ function setActiveProject(slug, options = {}) {
 
   activeProjectSlug = targetSlug;
   applyNavColorForSlug(targetSlug);
+
+  if (slugChanged) {
+    updateUrlHash(targetSlug);
+  }
 
   if (activeButton && (forceScroll || (scrollIntoView && slugChanged))) {
     const shouldScrollMenu = projectMenu.scrollWidth > projectMenu.clientWidth;

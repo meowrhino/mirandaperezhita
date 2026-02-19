@@ -46,8 +46,7 @@ mirandaperezhita/
     {
       "slug": "new-ywork",
       "color": "#748873",
-      "visible": true,
-      "autor": "miranda perez hita"
+      "visible": true
     }
   ]
 }
@@ -75,13 +74,26 @@ mirandaperezhita/
     ]
   },
   "imatges": [
-    { "src": "images/NY/2.webp", "size": "50" }
+    { "src": "images/NY/2.webp", "size": "50", "w": 6355, "h": 7944 }
   ]
 }
 ```
 
 - `size` es un porcentaje 1–100 que se traduce a `--scale` dentro de la `media-frame`.
+- `w` / `h` son las dimensiones reales en píxeles de la imagen. Opcionales, pero recomendados: permiten que el navegador reserve el espacio antes de cargar la imagen, evitando saltos de layout.
 - Las claves de texto aceptan objeto por idioma: cada idioma puede ser string único o array de párrafos. El formateador (`formateador.html`) genera el array listo para pegar.
+
+## Deep links
+
+Cada proyecto tiene su URL directa usando el hash del slug:
+
+```
+https://mirandaperezhita.com/#carnaval
+https://mirandaperezhita.com/#ejercicios
+https://mirandaperezhita.com/#new-ywork
+```
+
+Al navegar por el portfolio el hash se actualiza solo (`history.replaceState`), sin añadir entradas al historial del navegador. Si se accede directamente a una URL con hash, la página hace scroll automático al proyecto correspondiente al cargar.
 
 ## Detalles de implementación
 

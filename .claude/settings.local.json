@@ -23,7 +23,8 @@
       "Bash(if [ -f \"$f\" ])",
       "Bash(then)",
       "Bash(else)",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(node --check:*)"
     ]
   }
 }
