@@ -315,10 +315,10 @@ function renderAbout() {
   const footer = document.createElement("div");
   footer.className = "about-footer";
   const footerLink = document.createElement("a");
-  footerLink.href = "https://meowrhino.github.io/becasDigMeow/";
+  footerLink.href = "https://meowrhino.studio";
   footerLink.target = "_blank";
   footerLink.rel = "noopener noreferrer";
-  footerLink.textContent = "web: meowrhino";
+  footerLink.textContent = "meowrhino.studio";
   footer.appendChild(footerLink);
 
   wrap.appendChild(footer);

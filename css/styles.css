@@ -417,7 +417,7 @@ body.about-open #projects-container {
   line-height: 1.45;
   font-size: 1rem;
   padding-top: 0.75rem;
-  padding-bottom: 3rem;
+  /* padding-bottom: 3rem; */
   /* Centrado vertical en desktop: margin auto centra cuando hay espacio, scroll normal cuando no */
   margin-top: auto;
   margin-bottom: auto;
@@ -456,11 +456,12 @@ body.about-open #projects-container {
 .about-footer {
   margin-top: 5rem;
   text-align: center;
+  font-size: 0.75rem;
+  opacity: 0.4;
 }
 
 .about-footer a {
-  text-decoration: underline;
-  text-underline-offset: var(--underline-offset);
+  text-decoration: none;
 }
 
 .about-close {
@@ -494,7 +495,7 @@ body.about-open #projects-container {
     bottom: 0;
     padding: calc(2.25rem + var(--safe-top))
       calc(1.5rem + var(--safe-right))
-      calc(2.5rem + var(--safe-bottom))
+      var(--safe-bottom)
       calc(1.5rem + var(--safe-left));
     /* Animación desde abajo */
     transform: translateY(100%);
@@ -509,7 +510,7 @@ body.about-open #projects-container {
   .about-content {
     width: min(92vw, 32rem);
     padding-top: 1.25rem;
-    padding-bottom: 3.5rem;
+    padding-bottom: 1rem;
     margin-top: 0;
     margin-bottom: 0;
   }
