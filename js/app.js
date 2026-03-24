@@ -321,8 +321,9 @@ function renderAbout() {
   footerLink.textContent = "web: meowrhino";
   footer.appendChild(footerLink);
 
+  wrap.appendChild(footer);
+
   aboutPanel.appendChild(wrap);
-  aboutPanel.appendChild(footer);
   setAboutOpen(wasOpen);
 }
 
