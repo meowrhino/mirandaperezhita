@@ -454,8 +454,12 @@ body.about-open #projects-container {
 }
 
 .about-footer {
-  margin-top: 5rem;
+  position: absolute;
+  bottom: 2.5rem;
+  left: 0;
+  right: 0;
   text-align: center;
+  font-size: 0.8rem;
 }
 
 .about-footer a {
@@ -509,9 +513,15 @@ body.about-open #projects-container {
   .about-content {
     width: min(92vw, 32rem);
     padding-top: 1.25rem;
-    padding-bottom: 3.5rem;
+    padding-bottom: 0;
     margin-top: 0;
     margin-bottom: 0;
+  }
+
+  .about-footer {
+    position: absolute;
+    bottom: 2.5rem;
+    margin-top: 0;
   }
 }
 
