@@ -293,9 +293,14 @@ function renderAbout() {
   const body = document.createElement("div");
   body.className = "about-body";
 
-  const h2 = document.createElement("h2");
-  h2.textContent = "miranda perez hita";
-  body.appendChild(h2);
+  // Renderizar imágenes del about (si hay)
+  const aboutImages = aboutData?.imatges;
+  if (Array.isArray(aboutImages) && aboutImages.length) {
+    aboutImages.forEach((imgMeta) => {
+      const frame = makeMediaFrame(imgMeta.src, "about", imgMeta.size, imgMeta);
+      body.appendChild(frame);
+    });
+  }
 
   const paragraphs = getLocalizedParagraphs(aboutData?.text, activeLanguage);
   const aboutParagraphs = paragraphs.length ? paragraphs : [ABOUT_FALLBACK_TEXT];

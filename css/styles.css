@@ -418,6 +418,9 @@ body.about-open #projects-container {
   font-size: 1rem;
   padding-top: 0.75rem;
   padding-bottom: 3rem;
+  /* Centrado vertical en desktop: margin auto centra cuando hay espacio, scroll normal cuando no */
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .about-body {
@@ -507,6 +510,8 @@ body.about-open #projects-container {
     width: min(92vw, 32rem);
     padding-top: 1.25rem;
     padding-bottom: 3.5rem;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 }
 
