@@ -28,7 +28,7 @@ mirandaperezhita/
 2. Descarga `data/home.json`, prepara la mezcla de colores y pinta el fondo del sidebar según el idioma.
 3. Carga en paralelo los JSON de los proyectos visibles (`data/[slug].json`).
 4. Renderiza el menú lateral (botón por proyecto) y todas las secciones dentro de `#projects-container`.
-5. Activa listeners: cambio de idioma, apertura/cierre del About (`setAboutOpen`), sincronización de scroll (IntersectionObserver) y recalculo de `safe-area`.
+5. Activa listeners: cambio de idioma, apertura/cierre del About (`setAboutOpen`), sincronización de scroll (listener de scroll con rAF que activa el proyecto más cercano al centro) y recalculo de `safe-area`.
 6. `updateProjectsContent()` reutiliza el DOM existente cuando se cambia de idioma para mantener todo ligero.
 
 ### Datos esperados
@@ -98,7 +98,7 @@ Al navegar por el portfolio el hash se actualiza solo (`history.replaceState`), 
 ## Detalles de implementación
 
 - **Colores dinámicos**: `prepareProjectColorData()` convierte hex → RGB, calcula tono y mezcla con negro/blanco para obtener colores de texto con buen contraste. Con `nota_de_curt = 0` se mantiene la mezcla hacia negro, que actualmente funciona bien con la paleta.
-- **Imágenes**: `makeMediaFrame()` crea un contenedor con `aspect-ratio`. El ancho máximo es el tamaño natural de la imagen; por eso las imágenes pequeñas (como `images/monicaPlanes/3.webp`) quedan centradas sin escalar para evitar pixelado. Si se quisiera forzar a pantalla completa, se puede romper esa limitación y aceptar la pérdida de nitidez (ver notas en `todo.md`).
+- **Imágenes**: `makeMediaFrame()` crea un contenedor con `aspect-ratio`. El ancho máximo es el tamaño natural de la imagen; por eso las imágenes pequeñas (como `images/monicaPlanes/3.webp`) quedan centradas sin escalar para evitar pixelado. Si se quisiera forzar a pantalla completa, se puede romper esa limitación y aceptar la pérdida de nitidez.
 - **Panel About**: contenido se genera desde `data/about.json`. El botón del sidebar siempre se ve en negro (override directo en CSS) para mantener referencia estable.
 - **Accesibilidad básica**: el botón activo de proyecto usa `aria-current="true"`, el panel About alterna `aria-hidden`/`aria-expanded`, y `Esc` cierra el overlay.
 
@@ -116,7 +116,6 @@ python3 -m http.server 8080
 
 ## Mantenimiento
 
-- El listado de tareas y pendientes se consolida en `todo.md`.
 - Para cambiar el color base de la home, ajustar `home_colors` en `data/home.json`.
 - Para añadir un proyecto, duplicar un JSON existente en `data/`, actualizar rutas de imagen y referenciarlo en `home.json`.
 

@@ -4,7 +4,6 @@ let projectsData = {};
 let activeLanguage = "cat";
 let aboutData = null;
 let activeProjectSlug = null;
-let projectObserver = null;
 let scrollSyncRoot = null;
 let scrollSyncFrame = null;
 let scrollSyncTargets = [];
@@ -72,10 +71,6 @@ function applySidebarHeight() {
       `${height}px`
     );
   }
-}
-
-function updateStickyOffset() {
-  applySidebarHeight();
 }
 
 function debounce(fn, delay = 150) {
@@ -150,7 +145,7 @@ async function fetchWithRetry(url, options = {}, retries = MAX_RETRIES) {
       
       // Backoff exponencial: esperar más tiempo en cada reintento
       const delay = RETRY_DELAY * Math.pow(2, attempt);
-      console.warn(`Reintentando ${url} en ${delay}ms (intento ${attempt + 1}/${retries})...`);
+      console.warn(`Reintentando ${url} en ${delay}ms (intento ${attempt + 1}/${retries + 1})...`);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
@@ -203,15 +198,21 @@ async function init() {
     const handleLayoutChange = debounce(() => {
       updateSafeAreaVars();
       setupSidebarHeight();
-      setupProjectObserver();
+      setupProjectScrollSync();
     }, 300);
 
     window.addEventListener("resize", handleLayoutChange);
-    window.addEventListener("load", () => {
+    const onWindowLoad = () => {
       updateSafeAreaVars();
       setupSidebarHeight();
-      setupProjectObserver();
-    });
+      setupProjectScrollSync();
+    };
+    // Si la carga ya terminó (init es async), ejecutar directamente
+    if (document.readyState === "complete") {
+      onWindowLoad();
+    } else {
+      window.addEventListener("load", onWindowLoad, { once: true });
+    }
 
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", handleLayoutChange);
@@ -353,25 +354,22 @@ function setAboutOpen(isOpen, options = {}) {
     aboutTransitionHandler = null;
   }
 
+  // El bloqueo visual (overflow + pointer-events) lo aplica el CSS vía body.about-open;
+  // aquí solo se guarda/restaura la posición de scroll.
   const applyLockState = () => {
     const isActive =
       aboutPanel.classList.contains("open") ||
       aboutPanel.classList.contains("closing");
-    document.documentElement.classList.toggle("about-open", isActive);
     if (document.body) {
       document.body.classList.toggle("about-open", isActive);
     }
 
     if (!projectsContainer) return;
     if (isActive) {
-      projectsContainer.dataset.scrollPos = projectsContainer.scrollTop;
-      projectsContainer.style.overflow = "hidden";
-      projectsContainer.style.pointerEvents = "none";
-      projectsContainer.style.touchAction = "none";
-    } else {
-      projectsContainer.style.overflow = "";
-      projectsContainer.style.pointerEvents = "";
-      projectsContainer.style.touchAction = "";
+      if (!("scrollPos" in projectsContainer.dataset)) {
+        projectsContainer.dataset.scrollPos = projectsContainer.scrollTop;
+      }
+    } else if ("scrollPos" in projectsContainer.dataset) {
       const stored = parseInt(projectsContainer.dataset.scrollPos || "0", 10);
       requestAnimationFrame(() => {
         projectsContainer.scrollTop = stored;
@@ -448,8 +446,11 @@ function setAboutOpen(isOpen, options = {}) {
 
 // Conversión mínima de marcadores a HTML: **negrita**, *cursiva*, __subrayado__, [texto](url)
 function formatInline(s = "") {
-  // Escapar básico de < y & para evitar inyección, luego aplicar reemplazos controlados
-  let out = String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  // Escapar básico de <, & y " para evitar inyección (la comilla protege los atributos href)
+  let out = String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/"/g, "&quot;");
   // links [texto](url)
   out = out.replace(
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+|mailto:[^)\s]+)\)/g,
@@ -554,7 +555,6 @@ function prepareProjectColorData() {
     if (!project || typeof project.slug !== "string") return;
     const rgb = hexToRgb(project.color);
     if (!rgb) {
-      project.nota_de_curt = false;
       project.color_texto = DEFAULT_TEXT_COLOR;
       project.color_texto_proyecto = DEFAULT_TEXT_COLOR;
       homeProjectsBySlug.set(project.slug, project);
@@ -563,7 +563,6 @@ function prepareProjectColorData() {
 
     const tone = getTone(rgb);
     const isLight = tone >= threshold;
-    project.nota_de_curt = isLight;
 
     // Si el color es claro, mezclamos con negro para más contraste; si es oscuro, con blanco.
     const targetRgb = isLight ? { r: 0, g: 0, b: 0 } : { r: 255, g: 255, b: 255 };
@@ -771,13 +770,7 @@ function populateProjectInfo(target, projectData, projectTitleOverride) {
   firstP.innerHTML = infoParts.map((part) => part.html).join(", ");
   target.appendChild(firstP);
 
-  const hasTextos =
-    Array.isArray(projectData.textos) && projectData.textos.length;
-  const fallbackParagraphs = getLocalizedParagraphs(projectData.text);
-  const paragraphs = (hasTextos ? projectData.textos : fallbackParagraphs)
-    .map((p) => (typeof p === "string" ? p : String(p || "")))
-    .map((p) => p.trim())
-    .filter(Boolean);
+  const paragraphs = getLocalizedParagraphs(projectData.text);
 
   paragraphs.forEach((p) => {
     const para = document.createElement("p");
@@ -824,9 +817,7 @@ function renderProjectMenu() {
 // Renderizar proyectos
 function renderProjects() {
   if (!projectsContainer) return;
-  const visibleProjects = getVisibleProjects();
-  const allProjects = getVisibleProjectsFromHome();
-  const visibleSlugs = visibleProjects.map((p) => p.slug);
+  const visibleProjects = getVisibleProjectsFromHome();
 
   // Crear wrapper si no existe
   let wrapper = projectsContainer.querySelector(".projects-wrapper");
@@ -839,8 +830,7 @@ function renderProjects() {
   // Limpiar contenedor
   wrapper.innerHTML = "";
 
-  // Renderizar todos los proyectos
-  allProjects.forEach((project) => {
+  visibleProjects.forEach((project) => {
     if (!project || !project.slug) return;
     const projectData = projectsData[project.slug];
     if (!projectData) {
@@ -853,21 +843,10 @@ function renderProjects() {
     section.id = `project-${project.slug}`;
     section.dataset.slug = project.slug;
     section.style.backgroundColor = project.color;
-    if (typeof project.nota_de_curt !== "undefined") {
-      section.dataset.notaCurt = String(Boolean(project.nota_de_curt));
-    } else {
-      delete section.dataset.notaCurt;
-    }
     const sectionTextColor =
       project.color_texto_proyecto || project.color_texto || DEFAULT_TEXT_COLOR;
-    section.dataset.textColor = sectionTextColor;
     section.style.setProperty("--project-text-color", sectionTextColor);
     section.style.color = sectionTextColor;
-
-    // Ocultar si no está en la lista de visibles
-    if (!visibleSlugs.includes(project.slug)) {
-      section.classList.add("hidden");
-    }
 
     const content = document.createElement("div");
     content.className = "project-content";
@@ -916,12 +895,7 @@ function renderProjects() {
     setActiveProject(activeProjectSlug, { scrollIntoView: false });
   }
 
-  setupProjectObserver();
-}
-
-// Obtener proyectos visibles (por ahora sin filtros adicionales)
-function getVisibleProjects() {
-  return getVisibleProjectsFromHome();
+  setupProjectScrollSync();
 }
 
 function getElementOffsetInContainer(el, container) {
@@ -941,6 +915,14 @@ function correctScrollToElement(el) {
   }
 }
 
+function cancelScrollCorrection() {
+  scrollCorrectionTarget = null;
+  if (scrollCorrectionTimer) {
+    clearTimeout(scrollCorrectionTimer);
+    scrollCorrectionTimer = null;
+  }
+}
+
 // Scroll suave a un proyecto
 function scrollToProject(slug) {
   const element = document.getElementById(`project-${slug}`);
@@ -949,8 +931,8 @@ function scrollToProject(slug) {
   setActiveProject(slug);
 
   // Activar corrección event-driven mientras cargan imágenes
+  cancelScrollCorrection();
   scrollCorrectionTarget = element;
-  if (scrollCorrectionTimer) clearTimeout(scrollCorrectionTimer);
   scrollCorrectionTimer = setTimeout(() => {
     scrollCorrectionTarget = null;
     scrollCorrectionTimer = null;
@@ -975,7 +957,13 @@ function updateUrlHash(slug) {
 function getSlugFromHash() {
   const hash = location.hash;
   if (!hash || hash.length < 2) return null;
-  return hash.slice(1); // quitar el '#'
+  const raw = hash.slice(1); // quitar el '#'
+  // Decodificar por si el navegador entrega el hash percent-encoded (ej: ñ → %C3%B1)
+  try {
+    return decodeURIComponent(raw);
+  } catch (_) {
+    return raw;
+  }
 }
 
 function setActiveProject(slug, options = {}) {
@@ -1086,7 +1074,7 @@ function onScrollSync() {
 function updateActiveProjectFromScroll(root) {
   if (!projectsContainer) return;
   const sections = Array.from(
-    projectsContainer.querySelectorAll(".project-section:not(.hidden)")
+    projectsContainer.querySelectorAll(".project-section")
   );
   if (!sections.length) return;
 
@@ -1103,7 +1091,6 @@ function updateActiveProjectFromScroll(root) {
   let bestDistance = Infinity;
 
   sections.forEach((section) => {
-    if (section.classList.contains("hidden")) return;
     const rect = section.getBoundingClientRect();
     const intersectionTop = Math.max(rect.top, viewTop);
     const intersectionBottom = Math.min(rect.bottom, viewBottom);
@@ -1136,59 +1123,27 @@ function isScrollableContainer(element) {
   return Math.ceil(element.scrollHeight) > Math.ceil(element.clientHeight);
 }
 
-function setupProjectObserver() {
+// Sincronizar el proyecto activo con el scroll del contenedor
+function setupProjectScrollSync() {
   if (!projectsContainer) return;
 
-  if (projectObserver) {
-    projectObserver.disconnect();
-  }
-
-  const sections = projectsContainer.querySelectorAll(
-    ".project-section:not(.hidden)"
-  );
+  const sections = projectsContainer.querySelectorAll(".project-section");
   if (!sections.length) {
     cleanupScrollSync();
     return;
   }
 
-  let observerRoot = null;
+  let scrollRoot = null;
   try {
     if (isScrollableContainer(projectsContainer)) {
-      observerRoot = projectsContainer;
+      scrollRoot = projectsContainer;
     }
   } catch (_) {
-    observerRoot = null;
+    scrollRoot = null;
   }
 
-  setupScrollSync(observerRoot);
-  updateActiveProjectFromScroll(observerRoot);
-
-  projectObserver = new IntersectionObserver(
-    (entries) => {
-      const visibleEntries = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-
-      if (visibleEntries.length) {
-        const slug = visibleEntries[0].target.dataset.slug;
-        if (slug && slug !== activeProjectSlug) {
-          setActiveProject(slug, { scrollIntoView: false });
-        }
-      }
-    },
-    {
-      root: observerRoot,
-      rootMargin: "0px 0px -40% 0px",
-      threshold: [0.25, 0.5, 0.75],
-    }
-  );
-
-  sections.forEach((section) => {
-    if (!section.dataset.slug) {
-      section.dataset.slug = section.id.replace("project-", "");
-    }
-    projectObserver.observe(section);
-  });
+  setupScrollSync(scrollRoot);
+  updateActiveProjectFromScroll(scrollRoot);
 }
 
 // Configurar event listeners
@@ -1208,9 +1163,6 @@ function setupEventListeners() {
 
       // Desactivar temporalmente el scroll sync para evitar interferencias
       cleanupScrollSync();
-      if (projectObserver) {
-        projectObserver.disconnect();
-      }
 
       // Bloquear scroll completamente durante el cambio de idioma
       const originalOverflow = projectsContainer ? projectsContainer.style.overflow : '';
@@ -1223,11 +1175,12 @@ function setupEventListeners() {
 
       // Cambiar idioma
       activeLanguage = lang;
+      document.documentElement.lang = lang === "es" ? "es" : "ca";
       updateSidebarColor();
       renderProjectMenu();
       updateProjectsContent();
       renderAbout();
-      updateStickyOffset();
+      applySidebarHeight();
 
       // Restaurar scroll y configuración
       requestAnimationFrame(() => {
@@ -1240,9 +1193,9 @@ function setupEventListeners() {
         }
         document.documentElement.style.scrollBehavior = originalScrollBehavior;
         
-        // Reactivar el scroll sync y observer después de restaurar el scroll
+        // Reactivar el scroll sync después de restaurar el scroll
         requestAnimationFrame(() => {
-          setupProjectObserver();
+          setupProjectScrollSync();
         });
       });
     });
@@ -1271,6 +1224,17 @@ function setupEventListeners() {
     document.addEventListener("keydown", escCloseHandler);
   }
 
+  // Si el usuario scrollea manualmente, cancelar la corrección de scroll pendiente
+  if (projectsContainer) {
+    ["wheel", "touchstart"].forEach((eventName) => {
+      projectsContainer.addEventListener(
+        eventName,
+        cancelScrollCorrection,
+        PASSIVE_SCROLL_OPTIONS
+      );
+    });
+  }
+
   // Prevenir comportamiento extraño en iOS durante scroll horizontal del menú
   if (projectMenu) {
     // Prevenir que el scroll del menú afecte al scroll del documento
@@ -1297,15 +1261,8 @@ function updateProjectsContent() {
     const section = document.getElementById(`project-${project.slug}`);
     if (!section) return;
 
-    if (typeof project.nota_de_curt !== "undefined") {
-      section.dataset.notaCurt = String(Boolean(project.nota_de_curt));
-    } else {
-      delete section.dataset.notaCurt;
-    }
-
     const sectionTextColor =
       project.color_texto_proyecto || project.color_texto || DEFAULT_TEXT_COLOR;
-    section.dataset.textColor = sectionTextColor;
     section.style.setProperty("--project-text-color", sectionTextColor);
     section.style.color = sectionTextColor;
 

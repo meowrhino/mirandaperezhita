@@ -182,21 +182,6 @@ body.about-open #projects-container {
   padding: 1.75rem;
 }
 
-.project-title {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.project-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.project-detail {
-  font-size: 1.125rem;
-}
-
 .project-text {
   font-size: 1rem;
   line-height: 1.5;
@@ -297,14 +282,8 @@ body.about-open #projects-container {
   }
 }
 
-/* Ocultar proyectos no visibles */
-.project-section.hidden {
-  display: none;
-}
-
 /* === Media system (shared hero + gallery) === */
-.media-group,
-.project-gallery {
+.media-group {
   display: flex;
   flex-direction: column;
   gap: 5rem;
@@ -331,12 +310,6 @@ body.about-open #projects-container {
   transform: scale(var(--scale, 1));
   transform-origin: center center;
   display: block;
-}
-
-@media (max-width: 767px) {
-  .media-frame {
-    width: 100%;
-  }
 }
 
 /* === About panel layout === */
