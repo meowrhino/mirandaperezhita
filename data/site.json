@@ -1,0 +1,50 @@
+{
+  "$schema": "../schema/site.json",
+  "url": "https://mirandaperezhita.com",
+  "title": "Miranda Pérez-Hita",
+  "background": {
+    "ca": "#F9F8F6",
+    "es": "#EFECE3"
+  },
+  "threshold": 0,
+  "lists": {
+    "projects": [
+      {
+        "project": "carnaval",
+        "color": "#BB6464"
+      },
+      {
+        "project": "cosas-de-senoras",
+        "color": "#A5BFCC"
+      },
+      {
+        "project": "ejercicios",
+        "color": "#efeca7"
+      },
+      {
+        "project": "new-ywork",
+        "color": "#96C9F4"
+      },
+      {
+        "project": "art-nou",
+        "color": "#F5E7C6"
+      },
+      {
+        "project": "blanca-arias",
+        "color": "#FFC4C4"
+      },
+      {
+        "project": "as-time-bends",
+        "color": "#87BAC3"
+      },
+      {
+        "project": "dentro-caballo",
+        "color": "#96A78D"
+      },
+      {
+        "project": "monica-planes",
+        "color": "#E8988A"
+      }
+    ]
+  }
+}

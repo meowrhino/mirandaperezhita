@@ -1,0 +1,14 @@
+{
+  "name": "mirandaperezhita",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build/build.mjs"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "dependencies": {
+    "sharp": "^0.35.5"
+  }
+}

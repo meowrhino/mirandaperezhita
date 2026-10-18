@@ -1,125 +1,41 @@
-# mirandaperezhita — portfolio dinámico
+# mirandaperezhita
 
-Sitio estático minimalista construido con HTML, CSS y JavaScript vainilla. Carga los proyectos desde archivos JSON, cambia de idioma en caliente y muestra un panel “About” superpuesto sin recargar la página.
-
-## Arquitectura
-
-- `index.html`: sólo declara el layout (sidebar, contenedor de proyectos y panel About). Todo el contenido llega vía JS.
-- `js/app.js`: arranque `init()`, descarga de JSON, renderizado de menú y secciones, sincronización de scroll y panel About.
-- `css/styles.css`: tipografía EB Garamond, layout de dos columnas, sistema de imágenes basado en `--ratio`/`--scale` y transiciones suaves para el About.
-- `data/`: `home.json` define colores y qué proyectos son visibles; cada `*.json` describe un proyecto.
-- `images/`: recursos usados en los proyectos (con fallback en `images/reference/`).
+El portfolio de Miranda Pérez-Hita, diseñadora gráfica: una sola página con los proyectos uno
+detrás de otro, el menú a la izquierda (se marca el que se ve) y el about encima. En catalán y
+castellano. Hecho por [meowrhino.studio](https://meowrhino.studio) con la receta del estudio
+([meowrhino/JAMstack](https://github.com/meowrhino/JAMstack)). Para Miranda: [GUIA.md](GUIA.md).
+Traspaso: [TRASPASO.md](TRASPASO.md). Si el build falla: [CLAUDE.md](CLAUDE.md).
 
 ```
 mirandaperezhita/
-├── index.html
-├── css/styles.css
-├── js/app.js
-├── data/
-│   ├── home.json
-│   ├── about.json
-│   └── [slug].json
-└── images/
+├── data/site.json          # nombre, dominio, colores; "lists": qué proyectos salen, en orden, con su color
+├── data/about.json         # el about (su foto en data/about/)
+├── projects/<slug>/        # un proyecto: project.json + img/1.webp, 2.webp… (la 1, la de arriba)
+├── schema/                 # qué campos lleva cada JSON (VS Code, el build y la vista previa)
+├── index.html              # la página (plantilla del build, y la vista previa con Live Server)
+├── build/build.mjs         # → dist/: la página con el contenido dentro y una por proyecto
+├── js/carga.js             # lee los JSON y los pasa a la forma de antes (js/house.js)
+├── js/house.js             # la forma de la casa → la de antes (la usan carga.js y el build)
+├── js/validar.js           # el JSON Schema sin dependencias (de JAMstack)
+├── js/                     # main, about, scroll-sync, colors, media, i18n, markdown, state
+├── fonts/                  # EB Garamond en woff2 (sin Google Fonts)
+└── formateador.html        # pasa un texto largo a la lista de párrafos del JSON
 ```
 
-## Flujo de la aplicación
+## Cómo funciona
 
-1. `init()` se ejecuta en `DOMContentLoaded`.
-2. Descarga `data/home.json`, prepara la mezcla de colores y pinta el fondo del sidebar según el idioma.
-3. Carga en paralelo los JSON de los proyectos visibles (`data/[slug].json`).
-4. Renderiza el menú lateral (botón por proyecto) y todas las secciones dentro de `#projects-container`.
-5. Activa listeners: cambio de idioma, apertura/cierre del About (`setAboutOpen`), sincronización de scroll (listener de scroll con rAF que activa el proyecto más cercano al centro) y recalculo de `safe-area`.
-6. `updateProjectsContent()` reutiliza el DOM existente cuando se cambia de idioma para mantener todo ligero.
-
-### Datos esperados
-
-`data/home.json`:
-
-```json
-{
-  "home_colors": {
-    "cat": "#E6D8C3",
-    "es": "#F8E3CE"
-  },
-  "nota_de_curt": 50,
-  "projectes_visibles": [
-    {
-      "slug": "new-ywork",
-      "color": "#748873",
-      "visible": true
-    }
-  ]
-}
-```
-
-- `home_colors`: color de fondo por idioma (fallback a `cat`).
-- `nota_de_curt`: 0–100. Con 0 se consideran todos los colores “oscuros” y se mezcla hacia negro.
-- `projectes_visibles`: orden y color base de cada proyecto.
-
-`data/[slug].json`:
-
-```json
-{
-  "slug": "new-ywork",
-  "primera_imatge": { "src": "images/NY/1.webp", "size": "100" },
-  "titol": { "cat": "New Ywork", "es": "New Ywork" },
-  "client": { "cat": "Jaume Cloret", "es": "Jaume Cloret" },
-  "data": "2024",
-  "text": {
-    "cat": [
-      "Disseny del catàleg…"
-    ],
-    "es": [
-      "Diseño del catálogo…"
-    ]
-  },
-  "imatges": [
-    { "src": "images/NY/2.webp", "size": "50", "w": 6355, "h": 7944 }
-  ]
-}
-```
-
-- `size` es un porcentaje 1–100 que se traduce a `--scale` dentro de la `media-frame`.
-- `w` / `h` son las dimensiones reales en píxeles de la imagen. Opcionales, pero recomendados: permiten que el navegador reserve el espacio antes de cargar la imagen, evitando saltos de layout.
-- Las claves de texto aceptan objeto por idioma: cada idioma puede ser string único o array de párrafos. El formateador (`formateador.html`) genera el array listo para pegar.
-
-## Deep links
-
-Cada proyecto tiene su URL directa usando el hash del slug:
-
-```
-https://mirandaperezhita.com/#carnaval
-https://mirandaperezhita.com/#ejercicios
-https://mirandaperezhita.com/#new-ywork
-```
-
-Al navegar por el portfolio el hash se actualiza solo (`history.replaceState`), sin añadir entradas al historial del navegador. Si se accede directamente a una URL con hash, la página hace scroll automático al proyecto correspondiente al cargar.
-
-## Detalles de implementación
-
-- **Colores dinámicos**: `prepareProjectColorData()` convierte hex → RGB, calcula tono y mezcla con negro/blanco para obtener colores de texto con buen contraste. Con `nota_de_curt = 0` se mantiene la mezcla hacia negro, que actualmente funciona bien con la paleta.
-- **Imágenes**: `makeMediaFrame()` crea un contenedor con `aspect-ratio`. El ancho máximo es el tamaño natural de la imagen; por eso las imágenes pequeñas (como `images/monicaPlanes/3.webp`) quedan centradas sin escalar para evitar pixelado. Si se quisiera forzar a pantalla completa, se puede romper esa limitación y aceptar la pérdida de nitidez.
-- **Panel About**: contenido se genera desde `data/about.json`. El botón del sidebar siempre se ve en negro (override directo en CSS) para mantener referencia estable.
-- **Accesibilidad básica**: el botón activo de proyecto usa `aria-current="true"`, el panel About alterna `aria-hidden`/`aria-expanded`, y `Esc` cierra el overlay.
-
-## Desarrollo y pruebas
-
-1. Clonar el repo y abrir la carpeta en tu editor.
-2. Servir con cualquier servidor estático, por ejemplo:
-
-```bash
-python3 -m http.server 8080
-```
-
-3. Abrir `http://localhost:8080`.
-4. Editar JSON en `data/` y recargar el navegador para ver cambios.
-
-## Mantenimiento
-
-- Para cambiar el color base de la home, ajustar `home_colors` en `data/home.json`.
-- Para añadir un proyecto, duplicar un JSON existente en `data/`, actualizar rutas de imagen y referenciarlo en `home.json`.
-
-## Créditos
-
-Diseño y contenidos: miranda perez hita.  
-Implementación front-end: HTML/CSS/JS vainilla con enfoque minimalista.
+- **El build** (`npm ci && node build/build.mjs`) escribe la página con todo el contenido en
+  catalán dentro (menú, proyectos, about), y `/<slug>/` por proyecto: la misma página con el
+  title, la description, la og:image (1200×630, **sharp**, en `.cache/`) y el canonical de ese
+  proyecto, que se abre en él. Mide cada foto (`data/sizes.json` en `dist/`) para que no salte
+  nada al cargar. Al cargar, el JS vuelve a pintar lo mismo, en el idioma guardado.
+- **Las direcciones**: al bajar, la barra de direcciones va diciendo `/<slug>/` (en la vista
+  previa, `#<slug>`, como antes). Los enlaces de antes (`/#carnaval`) siguen valiendo, también
+  `#cosas-de-señoras`, que ahora es `cosas-de-senoras`.
+- **El idioma** (CAT/ES) sigue en `localStorage`: no hay una dirección por idioma.
+- **Los colores**: el de cada proyecto, en `lists`; el del texto lo calcula `js/colors.js`
+  (más oscuro o más claro según `threshold`).
+- **Vista previa**: Live Server sobre la carpeta. Sin `data-built` en `<html>`, `js/carga.js`
+  revisa los JSON con `schema/` y enseña en pantalla lo que pararía el build.
+- **Publicar**: nuestra copia, con la Action en `meowrhino.github.io/mirandaperezhita/` sin
+  indexar; la de Miranda, con Workers Builds (`wrangler.jsonc`) en su dominio. Si falla, un issue.

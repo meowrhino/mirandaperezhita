@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "projects/<nombre>/project.json: un proyecto",
+  "description": "projects/<nombre>/project.json: un proyecto. Sus fotos, en img/ de la misma carpeta, numeradas (1.webp, 2.webp…). VS Code lee este fichero (por el \"$schema\" de arriba del JSON) para autocompletar, explicar cada campo y subrayar lo que está mal; el build y la vista previa lo usan para revisar.",
+  "type": "object",
+  "$defs": {
+    "photo": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]+$",
+          "description": "El número de la foto, entre comillas y sin .webp: \"3\" es img/3.webp"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "photo",
+            "size"
+          ],
+          "description": "Una foto más pequeña: { \"photo\": \"3\", \"size\": 80 }",
+          "properties": {
+            "photo": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "description": "El número de la foto: \"3\""
+            },
+            "size": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "El tamaño, del 1 al 100 (100 es el normal), sin comillas."
+            }
+          }
+        }
+      ]
+    }
+  },
+  "required": [
+    "title",
+    "client",
+    "year",
+    "text",
+    "cover",
+    "photos"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "_": {
+      "type": "string"
+    },
+    "title": {
+      "description": "El título. *cursiva* con asteriscos.",
+      "anyOf": [
+        {
+          "type": "string",
+          "description": "El mismo en los dos idiomas: \"Carnaval\""
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ca"
+          ],
+          "properties": {
+            "ca": {
+              "type": "string"
+            },
+            "es": {
+              "type": "string"
+            }
+          },
+          "description": "Distinto en cada idioma: { \"ca\": \"…\", \"es\": \"…\" }"
+        }
+      ]
+    },
+    "client": {
+      "description": "Para quién: \"Rita González\"",
+      "anyOf": [
+        {
+          "type": "string",
+          "description": "El mismo en los dos idiomas: \"Carnaval\""
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ca"
+          ],
+          "properties": {
+            "ca": {
+              "type": "string"
+            },
+            "es": {
+              "type": "string"
+            }
+          },
+          "description": "Distinto en cada idioma: { \"ca\": \"…\", \"es\": \"…\" }"
+        }
+      ]
+    },
+    "year": {
+      "type": "string",
+      "description": "El año, entre comillas: \"2025\""
+    },
+    "text": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ca"
+      ],
+      "description": "El texto, un párrafo por línea. **negrita**, *cursiva*, __subrayado__ y [un enlace](https://…).",
+      "properties": {
+        "ca": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "En catalán, un párrafo por línea."
+        },
+        "es": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "En castellano. Si falta, sale el catalán."
+        }
+      }
+    },
+    "cover": {
+      "$ref": "#/$defs/photo",
+      "description": "La foto de arriba: \"1\". También es la que sale al compartir el enlace."
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/photo"
+      },
+      "description": "Las fotos de debajo del texto, en orden: [\"2\", \"3\", { \"photo\": \"4\", \"size\": 80 }]"
+    }
+  }
+}

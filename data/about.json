@@ -1,20 +1,16 @@
 {
-"text": {
-    "cat": [
-        "__Equipa gràáfica__ amb [Carla Boserman](https://www.carlaboserman.net/). Col·lectiu que edita i imprimeix dispositius gràfics que documenten processos a través de relatories, dibuixos i altres materials.",
-        "__6508__ amb Ricardo Pérez-Hita. Publicacions, fanzines i paperets."
+  "$schema": "../schema/about.json",
+  "text": {
+    "ca": [
+      "__Equipa gràfica__ amb [Carla Boserman](https://www.carlaboserman.net/). Col·lectiu que edita i imprimeix dispositius gràfics que documenten processos a través de relatories, dibuixos i altres materials.",
+      "__6508__ amb Ricardo Pérez-Hita. Publicacions, fanzines i paperets."
     ],
     "es": [
-        "__Equipa gràáfica__ con [Carla Boserman](https://www.carlaboserman.net/). Colectivo que edita e imprime dispositivos gráficos que documentan procesos a través de relatorías, dibujos y otros materiales.",
-        "__6508__ con Ricardo Pérez-Hita. Publicaciones, fanzines y papelitos."
+      "__Equipa gráfica__ con [Carla Boserman](https://www.carlaboserman.net/). Colectivo que edita e imprime dispositivos gráficos que documentan procesos a través de relatorías, dibujos y otros materiales.",
+      "__6508__ con Ricardo Pérez-Hita. Publicaciones, fanzines y papelitos."
     ]
-},
-"imatges": [
-    {
-        "src": "images/about/fotoAbout.jpg",
-        "size": "100",
-        "w": 6150,
-        "h": 4272
-    }
-]
+  },
+  "photos": [
+    "1"
+  ]
 }

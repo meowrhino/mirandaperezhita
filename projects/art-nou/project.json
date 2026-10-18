@@ -1,0 +1,20 @@
+{
+  "$schema": "../../schema/project.json",
+  "title": "Art Nou 2024",
+  "client": "Festival d'Art Emergent de Barcelona i l'Hospitalet",
+  "year": "2024",
+  "text": {
+    "ca": [
+      "Comunicació gràfica per a [Art Nou](https://artnou.net/) 2024."
+    ],
+    "es": [
+      "Comunicación gráfica para [Art Nou](https://artnou.net/) 2024."
+    ]
+  },
+  "cover": "1",
+  "photos": [
+    "2",
+    "3",
+    "4"
+  ]
+}

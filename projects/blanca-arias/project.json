@@ -1,0 +1,26 @@
+{
+  "$schema": "../../schema/project.json",
+  "title": "Només si fa olor de terra",
+  "client": "blanca arias",
+  "year": "2024",
+  "text": {
+    "ca": [
+      "Disseny del catàleg de «[Només si fa olor de terra](https://www.lapanera.cat/ca/programacio/exposicions/nomes-si-fa-olor-de-terra)», exposició a cura de blanca arias al Centre d’Art La Panera. Amb textos de l’Elena Castro i edu r. pineda. Coordinada per Anna Roigé."
+    ],
+    "es": [
+      "Diseño del catálogo de «[Només si fa olor de terra](https://www.lapanera.cat/ca/programacio/exposicions/nomes-si-fa-olor-de-terra)», exposición a cura de blanca arias en el Centre d’Art La Panera. Con textos de Elena Castro y edu r. pineda. Coordinada por Anna Roigé."
+    ]
+  },
+  "cover": "1",
+  "photos": [
+    {
+      "photo": "2",
+      "size": 75
+    },
+    "3",
+    {
+      "photo": "4",
+      "size": 75
+    }
+  ]
+}

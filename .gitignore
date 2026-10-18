@@ -1,23 +1,19 @@
-# macOS system files
+# macOS
 .DS_Store
-.AppleDouble
-.LSOverride
 
-# Thumbnails
-._*
+# Herramientas locales de Claude Code. Se ignora todo lo de la carpeta menos el
+# servidor de previsualización y su configuración, que sí interesa versionar: son
+# la manera de levantar el sitio en local sin depender de nada más.
+# El patrón tiene que ser .claude/* y no .claude/: con la barra final git no
+# entra en la carpeta y las excepciones de abajo no se aplicarían.
+.claude/*
+!.claude/launch.json
+!.claude/serve.js
 
-# Files that might appear in the root of a volume
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
+# Node (el sitio no tiene dependencias, pero por si acaso)
+node_modules/
 
-# Directories potentially created on remote AFP share
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
+# La web generada: la escribe node build/build.mjs y la publica la Action
+dist/
+# Las imágenes para compartir (sharp): las hace el build
+.cache/
